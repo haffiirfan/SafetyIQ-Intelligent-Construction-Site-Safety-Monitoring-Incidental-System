@@ -1,0 +1,20 @@
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+backend/.env
+
+# Database
+*.db
+*.sqlite
+
+# Machine Learning
+*.pt
+*.pth
+ml_training/datasets/
+
+# React
+frontend/node_modules/
+
+# VS Code
+.vscode/
