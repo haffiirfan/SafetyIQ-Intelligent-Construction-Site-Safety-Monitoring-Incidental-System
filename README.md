@@ -1,4 +1,4 @@
-# SafetyIQ
+# SafetyIQ: Intelligent Construction Site Safety Monitoring Incidental System
 
 An AI-powered construction site safety monitoring system.
 
