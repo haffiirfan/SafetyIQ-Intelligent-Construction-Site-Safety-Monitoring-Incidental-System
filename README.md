@@ -7,7 +7,7 @@ An AI-powered construction site safety monitoring system.
 - Backend: FastAPI
 - Frontend: React + Vite
 - Database: PostgreSQL
-- Machine Learning: YOLO11s
+- Machine Learning: YOLO11m
 - NLP: T5 + RAG
 
 
