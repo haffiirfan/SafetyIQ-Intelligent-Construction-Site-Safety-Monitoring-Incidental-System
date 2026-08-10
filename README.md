@@ -2,7 +2,7 @@
 
 An AI-powered construction site safety monitoring system.
 
-## Tech Stack
+## Tech Stack used
 
 - Backend: FastAPI
 - Frontend: React + Vite
