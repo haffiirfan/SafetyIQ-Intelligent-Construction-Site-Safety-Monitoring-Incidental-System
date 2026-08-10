@@ -17,7 +17,7 @@
 
 ---
 
-## 🎯 Overview
+##  Overview
 
 **SafetyIQ** is an end-to-end AI system that turns raw construction-site camera feeds into structured, actionable safety intelligence. It fuses a fine-tuned **YOLOv11** computer vision pipeline with a **retrieval-augmented NLP layer**, wrapped in a production-grade full-stack architecture — so violations aren't just detected, they're logged, contextualized, queried, and reported on, automatically.
 
@@ -25,20 +25,20 @@ Built to answer one question that most PPE-detection demos ignore: *what happens
 
 | Capability | What it does |
 |---|---|
-| 🎥 **Real-time detection** | Streams live camera frames via WebSocket, runs YOLOv11 inference, returns annotated frames with risk-level overlays at **sub-20ms/frame** |
-| 🧠 **Incident intelligence** | Domain-specific RAG pipeline synthesizes grounded, hallucination-resistant safety reports from structured violation data |
-| 🗄️ **Structured logging** | Every detection is auto-logged to a normalized relational schema; violations are auto-flagged by confidence threshold and PPE class |
-| 📊 **Live dashboard** | React + Vite interface with real-time annotated feed, zone-level violation tracking, natural-language query interface, and auto-generated reports |
-| 🐳 **Production packaging** | Dockerized microservice architecture — no "notebook to nowhere," this is built to deploy |
+|  **Real-time detection** | Streams live camera frames via WebSocket, runs YOLOv11 inference, returns annotated frames with risk-level overlays at **sub-20ms/frame** |
+|  **Incident intelligence** | Domain-specific RAG pipeline synthesizes grounded, hallucination-resistant safety reports from structured violation data |
+|  **Structured logging** | Every detection is auto-logged to a normalized relational schema; violations are auto-flagged by confidence threshold and PPE class |
+|  **Live dashboard** | React + Vite interface with real-time annotated feed, zone-level violation tracking, natural-language query interface, and auto-generated reports |
+|  **Production packaging** | Dockerized microservice architecture — no "notebook to nowhere," this is built to deploy |
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 ```
 ┌─────────────────┐      WebSocket         ──────────────────────┐
-│   Camera Feed    │ ──────────────────▶  │   FastAPI Inference   
-│   (OpenCV)       │                      │   Service (YOLOv11)   
+│   Camera Feed      ──────────────────▶  │   FastAPI Inference   
+│   (OpenCV)                              │   Service (YOLOv11)   
 └─────────────────┘                       └──────────┬───────────┘
                                                       │ annotated frames +
                                                       │ structured detections
@@ -63,7 +63,7 @@ All services are orchestrated via **Docker Compose** for one-command deployment.
 
 ---
 
-## 🧠 Computer Vision Pipeline
+##  Computer Vision Pipeline
 
 The detection backbone is a **YOLOv11m** model fine-tuned on a curated **44,002-image multi-class PPE dataset** spanning 9 target classes (Hardhat, NO-Hardhat, Safety Vest, NO-Safety Vest, Mask, NO-Mask, Gloves, NO-Gloves, Person).
 
@@ -76,7 +76,7 @@ The detection backbone is a **YOLOv11m** model fine-tuned on a curated **44,002-
 
 ---
 
-## 💬 NLP / RAG Incident Intelligence
+##  NLP / RAG Incident Intelligence
 
 Rather than bolting an LLM onto detection logs, SafetyIQ implements a **grounded retrieval pipeline** purpose-built for structured safety data:
 
@@ -89,7 +89,7 @@ This lets a site supervisor ask natural-language questions ("What zones had the 
 
 ---
 
-## 🗄️ Data Layer
+##  Data Layer
 
 - **5-table normalized relational schema** (cameras/zones, detections, violations, incident reports, users/roles) implemented with **SQLAlchemy ORM**
 - **Alembic migrations** for versioned, reproducible schema evolution
@@ -97,7 +97,7 @@ This lets a site supervisor ask natural-language questions ("What zones had the 
 
 ---
 
-## ⚡ Real-Time Inference Pipeline
+##  Real-Time Inference Pipeline
 
 - **FastAPI + WebSocket** streaming architecture ingests live OpenCV camera frames
 - YOLOv11**s** (the lighter variant) runs inference in the real-time path for latency, returning annotated frames with **Critical / High / Medium** risk-level overlays
@@ -105,7 +105,7 @@ This lets a site supervisor ask natural-language questions ("What zones had the 
 
 ---
 
-## 🖥️ Dashboard
+##  Dashboard
 
 Built with **React + Vite**, consuming both REST and WebSocket APIs:
 
@@ -116,7 +116,7 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -130,7 +130,7 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 
 ---
 
-## 📈 Results
+##  Results
 
 | Metric | Value |
 |---|---|
@@ -142,7 +142,7 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ```bash
 # Clone the repository
@@ -159,13 +159,13 @@ The dashboard will be available at `http://localhost:<port>`, with the inference
 
 ---
 
-## 🎓 Context
+##  Context
 
 SafetyIQ was developed as a **Final Year Project**, engineered end-to-end — from raw dataset curation and class-imbalance correction through model fine-tuning, backend architecture, RAG-based intelligence, and a deployable full-stack interface — to demonstrate production-oriented AI engineering rather than a single-notebook proof of concept.
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License — see [`LICENSE`](./LICENSE) for details.
 
