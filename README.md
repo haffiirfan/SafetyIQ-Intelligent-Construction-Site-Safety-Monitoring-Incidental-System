@@ -51,7 +51,7 @@ Built to answer one question that most PPE-detection demos ignore: *what happens
                                            └──────────┬───────────────┘
                                                       │
                               ┌───────────────────────┼───────────────────────┐
-                              ▼                                              ▼
+                              ▼                                               ▼
                   ┌────────────────────────┐                      ┌──────────────────────┐
                   │  RAG Pipeline          |                      │  React + Vite        |  
                   │  sentence-transformers |                      │  Dashboard           |   
