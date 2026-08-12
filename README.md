@@ -100,7 +100,7 @@ This lets a site supervisor ask natural-language questions ("What zones had the 
 ##  Real-Time Inference Pipeline
 
 - **FastAPI + WebSocket** streaming architecture ingests live OpenCV camera frames
-- YOLOv11**s** (the lighter variant) runs inference in the real-time path for latency, returning annotated frames with **Critical / High / Medium** risk-level overlays
+- YOLOv11**m** runs inference in the real-time path for latency, returning annotated frames with **Critical / High / Medium** risk-level overlays
 - **Sub-20ms per-frame latency**, keeping the pipeline viable for genuine real-time monitoring rather than batch-delayed review
 
 ---
