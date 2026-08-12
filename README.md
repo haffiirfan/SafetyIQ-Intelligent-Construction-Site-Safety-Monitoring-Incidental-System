@@ -1,7 +1,7 @@
 <div align="center">
 
 ## SafetyIQ
-### Intelligent Construction Site Safety Monitoring & Incident Intelligence System
+### Intelligent Construction Site Safety Monitoring & Incident System
 
 *Real-time PPE compliance detection meets NLP-driven incident reporting — a full-stack AI platform built for production.*
 
