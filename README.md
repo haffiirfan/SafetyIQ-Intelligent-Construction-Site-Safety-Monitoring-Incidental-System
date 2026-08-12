@@ -29,7 +29,7 @@ Built to answer one question that most PPE-detection demos ignore: *what happens
 |  **Incident intelligence** | Domain-specific RAG pipeline synthesizes grounded, hallucination-resistant safety reports from structured violation data |
 |  **Structured logging** | Every detection is auto-logged to a normalized relational schema; violations are auto-flagged by confidence threshold and PPE class |
 |  **Live dashboard** | React + Vite interface with real-time annotated feed, zone-level violation tracking, natural-language query interface, and auto-generated reports |
-|  **Production packaging** | Dockerized microservice architecture — no "notebook to nowhere," this is built to deploy |
+|  **Production packaging** | Dockerized microservice architecture, no "notebook to nowhere," this is built to deploy |
 
 ---
 
