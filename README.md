@@ -36,8 +36,8 @@ Built to answer one question that most PPE-detection demos ignore: *what happens
 ##  System Architecture
 
 ```
-┌───────────────────┐      WebSocket        ───────────────────────┐
-│   Camera Feed     |──────────────────▶   │   FastAPI Inference  |
+┌───────────────────┐      WebSocket        ┌──────────────────────┐
+│   Camera Feed     |──────────────────▶   |   FastAPI Inference  |
 │   (OpenCV)        |                       │   Service (YOLOv11)  | 
 └───────────────────┘                       └──────────┬───────────┘
                                                       │ annotated frames +
