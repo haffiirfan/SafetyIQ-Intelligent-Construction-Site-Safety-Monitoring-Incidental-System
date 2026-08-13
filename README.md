@@ -67,10 +67,10 @@ All services are orchestrated via **Docker Compose** for one-command deployment.
 
 The detection backbone is a **YOLOv11m** model fine-tuned on a curated **44,002-image multi-class PPE dataset** spanning 9 target classes (Hardhat, NO-Hardhat, Safety Vest, NO-Safety Vest, Mask, NO-Mask, Gloves, NO-Gloves, Person).
 
-**Key engineering decisions — not just "trained a model":**
+**Key engineering decisions, not just "trained a model":**
 
 - **Class-imbalance correction**: raw class distribution had a **29.3× imbalance** between the majority and minority class. Applied a two-pronged correction strategy, targeted undersampling of over-represented majority-class-only images, combined with capped, augmentation-diversified oversampling (not blind duplication) of minority classes, bringing the effective imbalance down to a trainable range without inducing memorization/overfitting on rare classes.
-- **Augmentation strategy**: mosaic, copy-paste, and affine/HSV transforms applied per-instance during oversampling so duplicated samples are never pixel-identical to their source — every "extra" copy contributes genuinely new gradient signal.
+- **Augmentation strategy**: mosaic, copy-paste, and affine/HSV transforms applied per-instance during oversampling so duplicated samples are never pixel-identical to their source, every "extra" copy contributes genuinely new gradient signal.
 - **Image-level vs. instance-level balancing**: correctly handled the multi-label nature of object detection (one image → multiple co-occurring class boxes), avoiding the common mistake of naively duplicating whole images and inflating majority classes further.
 - **Result**: **mAP@0.5 of 0.82+** at epoch 50 on a Tesla T4, with honest, unbalanced validation/test splits preserved throughout to ensure reported metrics reflect real-world performance, not an artificially rebalanced evaluation set.
 
@@ -82,7 +82,7 @@ Rather than bolting an LLM onto detection logs, SafetyIQ implements a **grounded
 
 - **Embedding generation** via `sentence-transformers`
 - **Vector retrieval** via **ChromaDB**
-- **Grounded synthesis** via **T5-base**, constrained to retrieved violation records — minimizing hallucination on structured safety-log queries
+- **Grounded synthesis** via **T5-base**, constrained to retrieved violation records, minimizing hallucination on structured safety-log queries
 - **Evaluation**: report quality validated against **ROUGE-1/2/L** and **BERTScore**, rather than relying on subjective read-throughs
 
 This lets a site supervisor ask natural-language questions ("What zones had the most hardhat violations this week?") and get a **factually grounded** answer synthesized from real logged incidents — not a generic LLM guess.
