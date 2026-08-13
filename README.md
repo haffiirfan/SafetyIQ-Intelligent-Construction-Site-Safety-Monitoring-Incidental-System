@@ -3,7 +3,7 @@
 ## SafetyIQ
 ### Intelligent Construction Site Safety Monitoring & Incident System
 
-*Real-time PPE compliance detection meets NLP-driven incident reporting — a full-stack AI platform built for production.*
+*Real-time PPE compliance detection meets NLP-driven incident reporting, a full-stack AI platform built for production.*
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
