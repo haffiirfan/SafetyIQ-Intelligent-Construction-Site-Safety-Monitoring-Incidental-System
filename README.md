@@ -93,7 +93,7 @@ This lets a site supervisor ask natural-language questions ("What zones had the 
 
 - **5-table normalized relational schema** (cameras/zones, detections, violations, incident reports, users/roles) implemented with **SQLAlchemy ORM**
 - **Alembic migrations** for versioned, reproducible schema evolution
-- Every YOLO detection is **auto-logged**, and violations are **auto-flagged** based on confidence threshold + PPE class — no manual triage bottleneck
+- Every YOLO detection is **auto-logged**, and violations are **auto-flagged** based on confidence threshold + PPE class, no manual triage bottleneck
 
 ---
 
@@ -161,16 +161,6 @@ The dashboard will be available at `http://localhost:<port>`, with the inference
 
 ##  Context
 
-SafetyIQ was developed as a **Final Year Project**, engineered end-to-end — from raw dataset curation and class-imbalance correction through model fine-tuning, backend architecture, RAG-based intelligence, and a deployable full-stack interface — to demonstrate production-oriented AI engineering rather than a single-notebook proof of concept.
+SafetyIQ was developed as a **Final Year Project**, engineered end-to-end, from raw dataset curation and class-imbalance correction through model fine-tuning, backend architecture, RAG-based intelligence, and a deployable full-stack interface, to demonstrate production-oriented AI engineering rather than a single-notebook proof of concept.
 
 ---
-
-##  License
-
-This project is licensed under the MIT License — see [`LICENSE`](./LICENSE) for details.
-
-<div align="center">
-
-**Built with a focus on what happens *after* the bounding box.**
-
-</div>
