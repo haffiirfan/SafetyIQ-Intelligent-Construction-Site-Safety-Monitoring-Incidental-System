@@ -25,7 +25,7 @@ Built to answer one question that most PPE-detection demos ignore: *what happens
 
 | Capability | What it does |
 |---|---|
-|  **Real-time detection** | Streams live camera frames via WebSocket, runs YOLOv11 inference, returns annotated frames with risk-level overlays at **sub-20ms/frame** |
+|  **Real-time detection** | Streams live camera frames via WebSocket, runs YOLOv11m inference, returns annotated frames with risk-level overlays at **sub-20ms/frame** |
 |  **Incident intelligence** | Domain-specific RAG pipeline synthesizes grounded, hallucination-resistant safety reports from structured violation data |
 |  **Structured logging** | Every detection is auto-logged to a normalized relational schema; violations are auto-flagged by confidence threshold and PPE class |
 |  **Live dashboard** | React + Vite interface with real-time annotated feed, zone-level violation tracking, natural-language query interface, and auto-generated reports |
@@ -37,7 +37,7 @@ Built to answer one question that most PPE-detection demos ignore: *what happens
 
 ```
 ┌───────────────────┐      WebSocket        ┌─────────────────────┐              
-│   Camera Feed     |──────────────────▶    |  FastAPI Inference |
+│   Camera Feed     |──────────────────▶   |  FastAPI Inference  |
 │   (OpenCV)        |                       │   Service (YOLOv11) | 
 └───────────────────┘                       └─────────┬───────────┘
                                                       │ annotated frames +
