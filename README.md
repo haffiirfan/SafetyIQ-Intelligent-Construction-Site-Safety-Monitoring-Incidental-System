@@ -72,7 +72,7 @@ The detection backbone is a **YOLOv11m** model fine-tuned on a curated **44,002-
 - **Class-imbalance correction**: raw class distribution had a **29.3× imbalance** between the majority and minority class. Applied a two-pronged correction strategy, targeted undersampling of over-represented majority-class-only images, combined with capped, augmentation-diversified oversampling (not blind duplication) of minority classes, bringing the effective imbalance down to a trainable range without inducing memorization/overfitting on rare classes.
 - **Augmentation strategy**: mosaic, copy-paste, and affine/HSV transforms applied per-instance during oversampling so duplicated samples are never pixel-identical to their source, every "extra" copy contributes genuinely new gradient signal.
 - **Image-level vs. instance-level balancing**: correctly handled the multi-label nature of object detection (one image → multiple co-occurring class boxes), avoiding the common mistake of naively duplicating whole images and inflating majority classes further.
-- **Result**: **mAP@0.5 of 0.82+** at epoch 50 on a Tesla T4, with honest, unbalanced validation/test splits preserved throughout to ensure reported metrics reflect real-world performance, not an artificially rebalanced evaluation set.
+- **Result**: **mAP@0.5 of 0.75+** at epoch 50 on a Tesla T4, with honest, unbalanced validation/test splits preserved throughout to ensure reported metrics reflect real-world performance, not an artificially rebalanced evaluation set.
 
 ---
 
