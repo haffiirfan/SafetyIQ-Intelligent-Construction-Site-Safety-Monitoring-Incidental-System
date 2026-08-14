@@ -19,7 +19,7 @@
 
 ##  Overview
 
-**SafetyIQ** is an end-to-end AI system that turns raw construction-site camera feeds into structured, actionable safety intelligence. It fuses a fine-tuned **YOLOv11** computer vision pipeline with a **retrieval-augmented NLP layer**, wrapped in a production-grade full-stack architecture so violations aren't just detected, they're logged, contextualized, queried, and reported on, automatically.
+**SafetyIQ** is an end-to-end AI system that turns raw construction-site camera feeds into structured, actionable safety intelligence. It fuses a fine-tuned **YOLOv11m** computer vision pipeline with a **retrieval-augmented NLP layer**, wrapped in a production-grade full-stack architecture so violations aren't just detected, they're logged, contextualized, queried, and reported on, automatically.
 
 Built to answer one question that most PPE-detection demos ignore: *what happens to the detection after the bounding box is drawn?*
 
