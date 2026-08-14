@@ -161,6 +161,6 @@ The dashboard will be available at `http://localhost:<port>`, with the inference
 
 ##  Context
 
-SafetyIQ was developed as a **Final Year Project**, engineered end-to-end, from raw dataset curation and class-imbalance correction through model fine-tuning, backend architecture, RAG-based intelligence, and a deployable full-stack interface, to demonstrate production-oriented AI engineering rather than a single-notebook proof of concept.
+SafetyIQ was developed as a **Prototype Working Model**, engineered end-to-end, from raw dataset curation and class-imbalance correction through model fine-tuning, backend architecture, RAG-based intelligence, and a deployable full-stack interface, to demonstrate production-oriented AI engineering rather than a single-notebook proof of concept.
 
 ---
