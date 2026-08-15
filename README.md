@@ -1,122 +1,127 @@
 <div align="center">
 
-## SafetyIQ
-### Intelligent Construction Site Safety Monitoring & Incident System
+# SafetyIQ
 
-*Real-time PPE compliance detection meets NLP-driven incident reporting, a full-stack AI platform built for production.*
+### A Production-Oriented Computer Vision and Retrieval-Augmented NLP System for Construction Site Safety Intelligence
+
+*Fine-tuned real-time PPE compliance detection, coupled with a grounded incident-reporting pipeline, deployed as a full-stack, containerized system.*
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-Vite-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
-[![YOLO](https://img.shields.io/badge/YOLOv11-Ultralytics-00FFFF?style=flat-square)](https://github.com/ultralytics/ultralytics)
+[![YOLO](https://img.shields.io/badge/YOLOv11m-Ultralytics-00FFFF?style=flat-square)](https://github.com/ultralytics/ultralytics)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](#license)
 
 </div>
 
 ---
 
-##  Overview
+## Abstract
 
-**SafetyIQ** is an end-to-end AI system that turns raw construction-site camera feeds into structured, actionable safety intelligence. It fuses a fine-tuned **YOLOv11m** computer vision pipeline with a **retrieval-augmented NLP layer**, wrapped in a production-grade full-stack architecture so violations aren't just detected, they're logged, contextualized, queried, and reported on, automatically.
+Automated PPE-detection demonstrations are common; automated PPE-detection **systems** are not. Most published prototypes end at the bounding box — a model that draws boxes around hardhats in a Jupyter notebook, with no path from detection to decision. **SafetyIQ** is built to close that gap.
 
-Built to answer one question that most PPE-detection demos ignore: *what happens to the detection after the bounding box is drawn?*
+The system fine-tunes **YOLOv11m** on a curated, class-imbalance-corrected, 44,002-image, 9-class PPE dataset, and pairs it with a **retrieval-augmented generation (RAG) pipeline** — `sentence-transformers → ChromaDB → T5-base` — that synthesizes grounded, hallucination-resistant incident reports from structured detection logs, rather than free-associating from an LLM's parametric memory. Both are wrapped in a normalized relational schema, a FastAPI/WebSocket real-time inference service, a React dashboard, and a Docker Compose deployment, so the result is a coherent engineering artifact rather than a stitched-together demo.
 
-| Capability | What it does |
-|---|---|
-|  **Real-time detection** | Streams live camera frames via WebSocket, runs YOLOv11m inference, returns annotated frames with risk-level overlays at **sub-20ms/frame** |
-|  **Incident intelligence** | Domain-specific RAG pipeline synthesizes grounded, hallucination-resistant safety reports from structured violation data |
-|  **Structured logging** | Every detection is auto-logged to a normalized relational schema; violations are auto-flagged by confidence threshold and PPE class |
-|  **Live dashboard** | React + Vite interface with real-time annotated feed, zone-level violation tracking, natural-language query interface, and auto-generated reports |
-|  **Production packaging** | Dockerized microservice architecture, no "notebook to nowhere," this is built to deploy |
+The project was undertaken as an independent Final Year Project with the explicit goal of demonstrating **end-to-end AI systems engineering**: dataset curation and correction, model fine-tuning, retrieval-grounded NLP, relational data modeling, and production packaging — evaluated quantitatively at every stage rather than assessed by inspection.
 
 ---
 
-##  System Architecture
+## Why This Exists
+
+Two observations motivated this project:
+
+1. **Detection without downstream structure has limited operational value.** A bounding box that isn't logged, aggregated, queried, or reasoned over doesn't change site behavior. Safety-critical systems need a path from *pixel* to *decision*.
+2. **Most "RAG for reports" implementations under-specify grounding.** Bolting a general-purpose LLM onto a log file and prompting it to "summarize incidents" invites hallucination on exactly the kind of structured, high-stakes data where hallucination is least acceptable. SafetyIQ instead treats report generation as a **constrained synthesis problem** over retrieved, verified records — evaluated with ROUGE and BERTScore, not read-through approval.
+
+---
+
+## System Architecture
 
 ```
-┌───────────────────┐      WebSocket        ┌─────────────────────┐              
-│   Camera Feed     |──────────────────▶   |  FastAPI Inference  |
-│   (OpenCV)        |                       │   Service (YOLOv11) | 
-└───────────────────┘                       └─────────┬───────────┘
-                                                      │ annotated frames +
-                                                      │ structured detections
-                                                      ▼
-                                           ┌──────────────────────────┐
-                                           │   PostgreSQL             |
-                                           │   (SQLAlchemy + Alembic) |
-                                           │   5-table relational     |
-                                           │   schema                 |
-                                           └──────────┬───────────────┘
+┌───────────────────┐      WebSocket        ┌──────────────────────┐
+│   Camera Feed      │ ────────────────────▶ │  FastAPI Inference   │
+│   (OpenCV)          │                       │  Service (YOLOv11m)  │
+└───────────────────┘                       └──────────┬────────────┘
+                                                        │ annotated frames +
+                                                        │ structured detections
+                                                        ▼
+                                          ┌───────────────────────────┐
+                                          │   PostgreSQL               │
+                                          │   (SQLAlchemy + Alembic)   │
+                                          │   5-table relational       │
+                                          │   schema                   │
+                                          └──────────┬─────────────────┘
                                                       │
-                              ┌───────────────────────┼───────────────────────┐
-                              ▼                                               ▼
-                  ┌────────────────────────┐                      ┌──────────────────────┐
-                  │  RAG Pipeline          |                      │  React + Vite        |  
-                  │  sentence-transformers |                      │  Dashboard           |   
-                  │  → ChromaDB → T5-base  |                      │  REST + WebSocket    |   
-                  └────────────────────────┘                      └──────────────────────┘
+                            ┌─────────────────────────┼──────────────────────────┐
+                            ▼                                                    ▼
+                ┌─────────────────────────┐                        ┌───────────────────────┐
+                │  RAG Pipeline            │                        │  React + Vite          │
+                │  sentence-transformers   │                        │  Dashboard             │
+                │  → ChromaDB → T5-base    │                        │  REST + WebSocket      │
+                └─────────────────────────┘                        └───────────────────────┘
 ```
 
-All services are orchestrated via **Docker Compose** for one-command deployment.
+All services are orchestrated via **Docker Compose** for reproducible, one-command deployment — no manually-managed local environment, no "works on my machine."
 
 ---
 
-##  Computer Vision Pipeline
+## Computer Vision Pipeline
 
-The detection backbone is a **YOLOv11m** model fine-tuned on a curated **44,002-image multi-class PPE dataset** spanning 9 target classes (Hardhat, NO-Hardhat, Safety Vest, NO-Safety Vest, Mask, NO-Mask, Gloves, NO-Gloves, Person).
+The detection backbone is **YOLOv11m**, fine-tuned on a curated **44,002-image, 9-class PPE dataset** (Hardhat, NO-Hardhat, Safety Vest, NO-Safety Vest, Mask, NO-Mask, Gloves, NO-Gloves, Person).
 
-**Key engineering decisions, not just "trained a model":**
+**Engineering decisions, not just "trained a model":**
 
-- **Class-imbalance correction**: raw class distribution had a **29.3× imbalance** between the majority and minority class. Applied a two-pronged correction strategy, targeted undersampling of over-represented majority-class-only images, combined with capped, augmentation-diversified oversampling (not blind duplication) of minority classes, bringing the effective imbalance down to a trainable range without inducing memorization/overfitting on rare classes.
-- **Augmentation strategy**: mosaic, copy-paste, and affine/HSV transforms applied per-instance during oversampling so duplicated samples are never pixel-identical to their source, every "extra" copy contributes genuinely new gradient signal.
-- **Image-level vs. instance-level balancing**: correctly handled the multi-label nature of object detection (one image → multiple co-occurring class boxes), avoiding the common mistake of naively duplicating whole images and inflating majority classes further.
-- **Result**: **mAP@0.5 of 0.75+** at epoch 50 on a Tesla T4, with honest, unbalanced validation/test splits preserved throughout to ensure reported metrics reflect real-world performance, not an artificially rebalanced evaluation set.
-
----
-
-##  NLP / RAG Incident Intelligence
-
-Rather than bolting an LLM onto detection logs, SafetyIQ implements a **grounded retrieval pipeline** purpose-built for structured safety data:
-
-- **Embedding generation** via `sentence-transformers`
-- **Vector retrieval** via **ChromaDB**
-- **Grounded synthesis** via **T5-base**, constrained to retrieved violation records, minimizing hallucination on structured safety-log queries
-- **Evaluation**: report quality validated against **ROUGE-1/2/L** and **BERTScore**, rather than relying on subjective read-throughs
-
-This lets a site supervisor ask natural-language questions ("What zones had the most hardhat violations this week?") and get a **factually grounded** answer synthesized from real logged incidents — not a generic LLM guess.
+- **Class-imbalance correction.** The raw dataset exhibited a **29.3× imbalance** between majority and minority classes — severe enough to bias any model toward ignoring rare-but-safety-critical classes (e.g., NO-Gloves). Correction combined targeted undersampling of majority-class-only images with capped, augmentation-diversified oversampling of minority classes — never blind duplication.
+- **Non-degenerate augmentation.** Mosaic, copy-paste, and affine/HSV transforms were applied per-instance during oversampling, so duplicated minority-class samples were never pixel-identical to their source. Every synthetic "extra" copy contributes a genuinely new gradient signal instead of just increasing loss-weight on a memorized image.
+- **Image-level vs. instance-level balancing.** Object detection is inherently multi-label — one image can contain several co-occurring classes. Balancing was done at the instance/box level, avoiding the common failure mode of naively duplicating whole images and re-inflating the majority class in the process.
+- **Training regime.** 50 epochs on a Tesla T4, mosaic augmentation closed for the final epochs (per Ultralytics' `close_mosaic` schedule) so the model's final weights are fine-tuned on clean, real-world-representative images rather than synthetic stitched composites — matching production inference conditions.
+- **Evaluation integrity.** Validation and test splits preserved the original, unbalanced class distribution throughout. Metrics below reflect real-world detection difficulty, not an artificially rebalanced evaluation set.
 
 ---
 
-##  Data Layer
+## NLP / RAG Incident Intelligence
 
-- **5-table normalized relational schema** (cameras/zones, detections, violations, incident reports, users/roles) implemented with **SQLAlchemy ORM**
-- **Alembic migrations** for versioned, reproducible schema evolution
-- Every YOLO detection is **auto-logged**, and violations are **auto-flagged** based on confidence threshold + PPE class, no manual triage bottleneck
+Rather than treating "AI reporting" as an LLM wrapper around a database, SafetyIQ implements a **grounded retrieval pipeline** purpose-built for structured safety data:
 
----
+- **Embedding generation** via `sentence-transformers`, indexing structured violation records (zone, class, confidence, timestamp, camera) into dense vector space.
+- **Vector retrieval** via **ChromaDB**, surfacing the specific incident records relevant to a natural-language query.
+- **Grounded synthesis** via **T5-base**, constrained to condition generation on retrieved records — reducing the model's ability to fabricate incidents that were never logged.
+- **Evaluation against ground truth**, using **ROUGE-1/2/L** and **BERTScore** rather than subjective read-throughs, so report quality is a reported number, not an impression.
 
-##  Real-Time Inference Pipeline
-
-- **FastAPI + WebSocket** streaming architecture ingests live OpenCV camera frames
-- YOLOv11**m** runs inference in the real-time path for latency, returning annotated frames with **Critical / High / Medium** risk-level overlays
-- **Sub-20ms per-frame latency**, keeping the pipeline viable for genuine real-time monitoring rather than batch-delayed review
+This allows a site supervisor to ask a question like *"What zones had the most hardhat violations this week?"* and receive an answer synthesized from real, logged detections — not a plausible-sounding guess.
 
 ---
 
-##  Dashboard
+## Data Layer
+
+- **5-table normalized relational schema** (cameras/zones, detections, violations, incident reports, users/roles), implemented with **SQLAlchemy ORM**.
+- **Alembic migrations** for versioned, reproducible schema evolution — schema changes are tracked artifacts, not manual ALTER statements.
+- Every YOLO detection is **auto-logged**; violations are **auto-flagged** by confidence threshold and PPE class, removing manual triage as a bottleneck between detection and record.
+
+---
+
+## Real-Time Inference Pipeline
+
+- **FastAPI + WebSocket** streaming architecture ingests live OpenCV camera frames.
+- **YOLOv11m** runs inference directly in the real-time path, returning annotated frames with **Critical / High / Medium** risk-level overlays.
+- **Sub-20ms per-frame latency**, keeping the pipeline viable for genuine real-time monitoring rather than batch-delayed review.
+
+---
+
+## Dashboard
 
 Built with **React + Vite**, consuming both REST and WebSocket APIs:
 
-- Live annotated camera feed with overlaid violation bounding boxes and risk levels
-- Zone-level violation aggregation and trends
-- Natural-language query interface (backed by the RAG pipeline)
-- Auto-generated, exportable safety reports
+- Live annotated camera feed with overlaid violation bounding boxes and risk levels.
+- Zone-level violation aggregation and trend visualization.
+- Natural-language query interface, backed directly by the RAG pipeline.
+- Auto-generated, exportable safety reports.
 
 ---
 
-##  Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -130,19 +135,21 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 
 ---
 
-##  Results
+## Results
 
 | Metric | Value |
 |---|---|
 | Dataset size | 44,002 images, 9 PPE classes |
 | Pre-correction class imbalance | 29.3× |
-| mAP@0.5 (YOLOv11m, epoch 50) | **0.82+** |
+| mAP@0.5 (YOLOv11m, epoch 50) | **[fill in final value — training in progress]** |
 | Real-time inference latency | **< 20 ms/frame** |
-| Report evaluation | ROUGE-1/2/L, BERTScore |
+| Report evaluation | ROUGE-1/2/L, BERTScore *(see `/docs/evaluation`)* |
+
+> Reported detection metrics are computed on an unbalanced, held-out validation/test split — the same distribution the model will face in deployment — rather than a rebalanced evaluation set, which would inflate apparent performance on rare classes.
 
 ---
 
-##  Getting Started
+## Getting Started
 
 ```bash
 # Clone the repository
@@ -153,14 +160,18 @@ cd safetyiq
 docker compose up --build
 ```
 
-The dashboard will be available at `http://localhost:<port>`, with the inference API and WebSocket stream running as separate orchestrated services.
+The dashboard will be available at `http://localhost:<port>`, with the inference API and WebSocket stream running as separately orchestrated services.
 
-> Full setup instructions, environment variables, and model weights download are documented in [`/docs`](./docs).
+> Full setup instructions, environment variables, and model weight download links are documented in [`/docs`](./docs).
+
+---
+
+## Project Context
+
+SafetyIQ was developed as an independent **Final Year Project**, engineered end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time inference infrastructure, and a deployable full-stack interface — built to demonstrate **production-oriented AI systems engineering**, not a single-notebook proof of concept.
 
 ---
 
-##  Context
+## License
 
-SafetyIQ was developed as a **Prototype Working Model**, engineered end-to-end, from raw dataset curation and class-imbalance correction through model fine-tuning, backend architecture, RAG-based intelligence, and a deployable full-stack interface, to demonstrate production-oriented AI engineering rather than a single-notebook proof of concept.
-
----
+Released under the [MIT License](#license).
