@@ -20,9 +20,9 @@
 
 ## Abstract
 
-Automated PPE-detection demonstrations are common; automated PPE-detection **systems** are not. Most published prototypes end at the bounding box — a model that draws boxes around hardhats in a Jupyter notebook, with no path from detection to decision. **SafetyIQ** is built to close that gap.
+Automated PPE-detection demonstrations are common; automated PPE-detection **systems** are not. Most published prototypes end at the bounding box, a model that draws boxes around hardhats in a Jupyter notebook, with no path from detection to decision. **SafetyIQ** is built to close that gap.
 
-The system fine-tunes **YOLOv11m** on a curated, class-imbalance-corrected, 44,002-image, 9-class PPE dataset, and pairs it with a **retrieval-augmented generation (RAG) pipeline** — `sentence-transformers → ChromaDB → T5-base` — that synthesizes grounded, hallucination-resistant incident reports from structured detection logs, rather than free-associating from an LLM's parametric memory. Both are wrapped in a normalized relational schema, a FastAPI/WebSocket real-time inference service, a React dashboard, and a Docker Compose deployment, so the result is a coherent engineering artifact rather than a stitched-together demo.
+The system fine-tunes **YOLOv11m** on a curated, class-imbalance-corrected, 44,002-image, 9-class PPE dataset, and pairs it with a **retrieval-augmented generation (RAG) pipeline** — `sentence-transformers → ChromaDB → T5-base`, that synthesizes grounded, hallucination-resistant incident reports from structured detection logs, rather than free-associating from an LLM's parametric memory. Both are wrapped in a normalized relational schema, a FastAPI/WebSocket real-time inference service, a React dashboard, and a Docker Compose deployment, so the result is a coherent engineering artifact rather than a stitched-together demo.
 
 The project was undertaken as an independent Final Year Project with the explicit goal of demonstrating **end-to-end AI systems engineering**: dataset curation and correction, model fine-tuning, retrieval-grounded NLP, relational data modeling, and production packaging — evaluated quantitatively at every stage rather than assessed by inspection.
 
@@ -40,26 +40,26 @@ Two observations motivated this project:
 ## System Architecture
 
 ```
-┌───────────────────┐      WebSocket        ┌──────────────────────┐
-│   Camera Feed      │ ────────────────────▶ │  FastAPI Inference   │
-│   (OpenCV)          │                       │  Service (YOLOv11m)  │
-└───────────────────┘                       └──────────┬────────────┘
+┌───────────────────┐      WebSocket         ┌──────────────────────┐
+│   Camera Feed     │ ────────────────────▶  │  FastAPI Inference   │
+│   (OpenCV)        │                        │  Service (YOLOv11m)  │
+└───────────────────┘                        └──────────┬───────────┘
                                                         │ annotated frames +
                                                         │ structured detections
                                                         ▼
                                           ┌───────────────────────────┐
-                                          │   PostgreSQL               │
-                                          │   (SQLAlchemy + Alembic)   │
-                                          │   5-table relational       │
-                                          │   schema                   │
-                                          └──────────┬─────────────────┘
-                                                      │
-                            ┌─────────────────────────┼──────────────────────────┐
-                            ▼                                                    ▼
+                                          │   PostgreSQL              │
+                                          │   (SQLAlchemy + Alembic)  │
+                                          │   5-table relational      │
+                                          │   schema                  │
+                                          └──────────┬────────────────┘
+                                                     │
+                            ┌────────────────────────┼──────────────────────────┐
+                            ▼                                                   ▼
                 ┌─────────────────────────┐                        ┌───────────────────────┐
-                │  RAG Pipeline            │                        │  React + Vite          │
-                │  sentence-transformers   │                        │  Dashboard             │
-                │  → ChromaDB → T5-base    │                        │  REST + WebSocket      │
+                │  RAG Pipeline           │                        │  React + Vite         │
+                │  sentence-transformers  │                        │  Dashboard            │
+                │  → ChromaDB → T5-base   │                        │  REST + WebSocket     │
                 └─────────────────────────┘                        └───────────────────────┘
 ```
 
@@ -169,9 +169,3 @@ The dashboard will be available at `http://localhost:<port>`, with the inference
 ## Project Context
 
 SafetyIQ was developed as an independent **Final Year Project**, engineered end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time inference infrastructure, and a deployable full-stack interface — built to demonstrate **production-oriented AI systems engineering**, not a single-notebook proof of concept.
-
----
-
-## License
-
-Released under the [MIT License](#license).
