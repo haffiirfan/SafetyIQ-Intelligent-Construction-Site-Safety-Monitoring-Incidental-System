@@ -33,7 +33,7 @@ The project was undertaken as an independent Final Year Project with the explici
 Two observations motivated this project:
 
 1. **Detection without downstream structure has limited operational value.** A bounding box that isn't logged, aggregated, queried, or reasoned over doesn't change site behavior. Safety-critical systems need a path from *pixel* to *decision*.
-2. **Most "RAG for reports" implementations under-specify grounding.** Bolting a general-purpose LLM onto a log file and prompting it to "summarize incidents" invites hallucination on exactly the kind of structured, high-stakes data where hallucination is least acceptable. SafetyIQ instead treats report generation as a **constrained synthesis problem** over retrieved, verified records — evaluated with ROUGE and BERTScore, not read-through approval.
+2. **Most "RAG for reports" implementations under-specify grounding.** Bolting a general-purpose LLM onto a log file and prompting it to "summarize incidents" invites hallucination on exactly the kind of structured, high-stakes data where hallucination is least acceptable. SafetyIQ instead treats report generation as a **constrained synthesis problem** over retrieved, verified records,  evaluated with ROUGE and BERTScore, not read-through approval.
 
 ---
 
@@ -63,7 +63,7 @@ Two observations motivated this project:
                 └─────────────────────────┘                        └───────────────────────┘
 ```
 
-All services are orchestrated via **Docker Compose** for reproducible, one-command deployment — no manually-managed local environment, no "works on my machine."
+All services are orchestrated via **Docker Compose** for reproducible, one-command deployment, no manually-managed local environment, no "works on my machine."
 
 ---
 
@@ -73,10 +73,10 @@ The detection backbone is **YOLOv11m**, fine-tuned on a curated **44,002-image, 
 
 **Engineering decisions, not just "trained a model":**
 
-- **Class-imbalance correction.** The raw dataset exhibited a **29.3× imbalance** between majority and minority classes — severe enough to bias any model toward ignoring rare-but-safety-critical classes (e.g., NO-Gloves). Correction combined targeted undersampling of majority-class-only images with capped, augmentation-diversified oversampling of minority classes — never blind duplication.
+- **Class-imbalance correction.** The raw dataset exhibited a **29.3× imbalance** between majority and minority classes, severe enough to bias any model toward ignoring rare-but-safety-critical classes (e.g., NO-Gloves). Correction combined targeted undersampling of majority-class-only images with capped, augmentation-diversified oversampling of minority classes, never blind duplication.
 - **Non-degenerate augmentation.** Mosaic, copy-paste, and affine/HSV transforms were applied per-instance during oversampling, so duplicated minority-class samples were never pixel-identical to their source. Every synthetic "extra" copy contributes a genuinely new gradient signal instead of just increasing loss-weight on a memorized image.
-- **Image-level vs. instance-level balancing.** Object detection is inherently multi-label — one image can contain several co-occurring classes. Balancing was done at the instance/box level, avoiding the common failure mode of naively duplicating whole images and re-inflating the majority class in the process.
-- **Training regime.** 50 epochs on a Tesla T4, mosaic augmentation closed for the final epochs (per Ultralytics' `close_mosaic` schedule) so the model's final weights are fine-tuned on clean, real-world-representative images rather than synthetic stitched composites — matching production inference conditions.
+- **Image-level vs. instance-level balancing.** Object detection is inherently multi-label, one image can contain several co-occurring classes. Balancing was done at the instance/box level, avoiding the common failure mode of naively duplicating whole images and re-inflating the majority class in the process.
+- **Training regime.** 50 epochs on a Tesla T4, mosaic augmentation closed for the final epochs (per Ultralytics' `close_mosaic` schedule) so the model's final weights are fine-tuned on clean, real-world-representative images rather than synthetic stitched composites, matching production inference conditions.
 - **Evaluation integrity.** Validation and test splits preserved the original, unbalanced class distribution throughout. Metrics below reflect real-world detection difficulty, not an artificially rebalanced evaluation set.
 
 ---
@@ -90,7 +90,7 @@ Rather than treating "AI reporting" as an LLM wrapper around a database, SafetyI
 - **Grounded synthesis** via **T5-base**, constrained to condition generation on retrieved records — reducing the model's ability to fabricate incidents that were never logged.
 - **Evaluation against ground truth**, using **ROUGE-1/2/L** and **BERTScore** rather than subjective read-throughs, so report quality is a reported number, not an impression.
 
-This allows a site supervisor to ask a question like *"What zones had the most hardhat violations this week?"* and receive an answer synthesized from real, logged detections — not a plausible-sounding guess.
+This allows a site supervisor to ask a question like *"What zones had the most hardhat violations this week?"* and receive an answer synthesized from real, logged detections, not a plausible-sounding guess.
 
 ---
 
@@ -145,7 +145,7 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 | Real-time inference latency | **< 20 ms/frame** |
 | Report evaluation | ROUGE-1/2/L, BERTScore *(see `/docs/evaluation`)* |
 
-> Reported detection metrics are computed on an unbalanced, held-out validation/test split — the same distribution the model will face in deployment — rather than a rebalanced evaluation set, which would inflate apparent performance on rare classes.
+> Reported detection metrics are computed on an unbalanced, held-out validation/test split, the same distribution the model will face in deployment — rather than a rebalanced evaluation set, which would inflate apparent performance on rare classes.
 
 ---
 
