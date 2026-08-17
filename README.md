@@ -97,7 +97,7 @@ This allows a site supervisor to ask a question like *"What zones had the most h
 ## Data Layer
 
 - **5-table normalized relational schema** (cameras/zones, detections, violations, incident reports, users/roles), implemented with **SQLAlchemy ORM**.
-- **Alembic migrations** for versioned, reproducible schema evolution — schema changes are tracked artifacts, not manual ALTER statements.
+- **Alembic migrations** for versioned, reproducible schema evolution, schema changes are tracked artifacts, not manual ALTER statements.
 - Every YOLO detection is **auto-logged**; violations are **auto-flagged** by confidence threshold and PPE class, removing manual triage as a bottleneck between detection and record.
 
 ---
@@ -168,4 +168,4 @@ The dashboard will be available at `http://localhost:<port>`, with the inference
 
 ## Project Context
 
-SafetyIQ was developed as an independent **Final Year Project**, engineered end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time inference infrastructure, and a deployable full-stack interface — built to demonstrate **production-oriented AI systems engineering**, not a single-notebook proof of concept.
+SafetyIQ was developed as an independent **Final Year Project**, engineered end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time inference infrastructure, and a deployable full-stack interface b,uilt to demonstrate **production-oriented AI systems engineering**, not a single-notebook proof of concept.
