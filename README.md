@@ -141,7 +141,7 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 |---|---|
 | Dataset size | 44,002 images, 9 PPE classes |
 | Pre-correction class imbalance | 29.3× |
-| mAP@0.5 (YOLOv11m, epoch 50) | **[fill in final value — training in progress]** |
+| mAP@0.5 (YOLOv11m, epoch 50) | **[74]** |
 | Real-time inference latency | **< 20 ms/frame** |
 | Report evaluation | ROUGE-1/2/L, BERTScore *(see `/docs/evaluation`)* |
 
