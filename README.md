@@ -87,7 +87,7 @@ Rather than treating "AI reporting" as an LLM wrapper around a database, SafetyI
 
 - **Embedding generation** via `sentence-transformers`, indexing structured violation records (zone, class, confidence, timestamp, camera) into dense vector space.
 - **Vector retrieval** via **ChromaDB**, surfacing the specific incident records relevant to a natural-language query.
-- **Grounded synthesis** via **T5-base**, constrained to condition generation on retrieved records — reducing the model's ability to fabricate incidents that were never logged.
+- **Grounded synthesis** via **T5-base**, constrained to condition generation on retrieved records r,educing the model's ability to fabricate incidents that were never logged.
 - **Evaluation against ground truth**, using **ROUGE-1/2/L** and **BERTScore** rather than subjective read-throughs, so report quality is a reported number, not an impression.
 
 This allows a site supervisor to ask a question like *"What zones had the most hardhat violations this week?"* and receive an answer synthesized from real, logged detections, not a plausible-sounding guess.
