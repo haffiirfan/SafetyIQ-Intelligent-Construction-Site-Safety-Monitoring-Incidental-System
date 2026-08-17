@@ -8,6 +8,7 @@ class Violation(Base):
     detection_id = Column(Integer, ForeignKey("detections.id"))
     zone         = Column(String)
     severity     = Column(String, default="high")
+    risk_type    = Column(String)    # ← add this if missing
     resolved     = Column(Boolean, default=False)
     notes        = Column(Text, nullable=True)
     created_at   = Column(DateTime(timezone=True), server_default=func.now())

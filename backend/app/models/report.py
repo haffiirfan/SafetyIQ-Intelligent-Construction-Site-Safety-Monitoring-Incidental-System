@@ -7,5 +7,6 @@ class IncidentReport(Base):
     id           = Column(Integer, primary_key=True, index=True)
     date         = Column(DateTime(timezone=True))
     summary_text = Column(Text)
+    risk_type =    Column(String)  # "NO-Hardhat", "NO-Safety Vest" etc
     generated_by = Column(String, default="T5")
     created_at   = Column(DateTime(timezone=True), server_default=func.now())
