@@ -1,10 +1,12 @@
 ﻿import os
+import cv2
 from typing import List, Dict
 
 class YOLODetector:
     def __init__(self, model_path: str = None):
         self.model = None
         self.model_path = model_path
+        self.video_path = None
 
         if model_path and os.path.exists(model_path):
             try:
@@ -16,13 +18,26 @@ class YOLODetector:
         else:
             print("No model found - using mock detector")
 
-    def detect(self, frame) -> List[Dict]:
-        if self.model:
+    def set_video(self, video_path: str):
+        self.video_path = video_path
+
+    def detect(self, frame=None) -> List[Dict]:
+        if frame is not None and self.model:
+            return self._real_detect(frame)
+        return self._mock_detect()
+
+    def detect_from_video(self, video_path: str) -> List[Dict]:
+        if not self.model:
+            return self._mock_detect()
+        cap = cv2.VideoCapture(video_path)
+        ret, frame = cap.read()
+        cap.release()
+        if ret:
             return self._real_detect(frame)
         return self._mock_detect()
 
     def _real_detect(self, frame) -> List[Dict]:
-        results = self.model(frame, conf=0.5)
+        results = self.model(frame, conf=0.5, verbose=False)
         detections = []
         for r in results:
             for box in r.boxes:
@@ -56,4 +71,4 @@ class YOLODetector:
         }
         return risk_map.get(class_name, "None")
 
-detector = YOLODetector(model_path="ml_training/models/best.pt")
+detector = YOLODetector(model_path="../ml_training/models/best.pt")

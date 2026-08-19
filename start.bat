@@ -2,7 +2,7 @@
 title SafetyIQ Launcher
 
 :: Start backend silently
-start /min "" cmd /c "cd /d C:\Users\DELL\Desktop\SafetyIQ\backend && venv\Scripts\activate && uvicorn main:app --reload"
+start /min "" cmd /c "cd /d C:\Users\DELL\Desktop\SafetyIQ\backend && venv\Scripts\activate && uvicorn app.main:app --reload"
 
 :: Start frontend silently
 start /min "" cmd /c "cd /d C:\Users\DELL\Desktop\SafetyIQ\frontend && npm run dev"

@@ -1,12 +1,10 @@
-// ══════════════════════════════════════════
-// hooks/useWebSocket.js — Live camera feed
-// ══════════════════════════════════════════
 import { useEffect, useRef, useState } from 'react'
 import useAppStore from '../store/useAppStore'
 
 export default function useWebSocket(cameraId) {
   const [detections, setDetections] = useState([])
   const [connected, setConnected]   = useState(false)
+  const [frame, setFrame]           = useState(null)
   const wsRef = useRef(null)
   const addAlert = useAppStore((s) => s.addAlert)
 
@@ -18,16 +16,14 @@ export default function useWebSocket(cameraId) {
     )
     wsRef.current = ws
 
-    ws.onopen = () => {
-      setConnected(true)
-      console.log(`WebSocket connected — Camera ${cameraId}`)
-    }
+    ws.onopen = () => setConnected(true)
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
       setDetections(data.detections || [])
 
-      // Add critical violations to alerts
+      if (data.frame) setFrame(data.frame)
+
       data.violations?.forEach((v) => {
         if (v.risk === 'Critical') {
           addAlert({
@@ -41,15 +37,11 @@ export default function useWebSocket(cameraId) {
       })
     }
 
-    ws.onclose = () => {
-      setConnected(false)
-      console.log(`WebSocket disconnected — Camera ${cameraId}`)
-    }
-
+    ws.onclose = () => setConnected(false)
     ws.onerror = (e) => console.error('WebSocket error:', e)
 
     return () => ws.close()
   }, [cameraId])
 
-  return { detections, connected }
+  return { detections, connected, frame }
 }

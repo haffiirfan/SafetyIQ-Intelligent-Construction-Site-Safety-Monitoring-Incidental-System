@@ -17,4 +17,5 @@ ml_training/datasets/
 frontend/node_modules/
 
 # VS Code
+temp_video/
 .vscode/
