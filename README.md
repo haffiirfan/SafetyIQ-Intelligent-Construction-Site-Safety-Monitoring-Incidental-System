@@ -39,10 +39,10 @@ Two observations motivated this project:
 ## System Architecture
 
 ```
-┌───────────────────┐      WebSocket         ┌──────────────────────┐
-│   Camera Feed     │ ────────────────────▶ │  FastAPI Inference   │
-│   (OpenCV)        │                        │  Service (YOLOv11m)  │
-└───────────────────┘                        └──────────┬───────────┘
+┌───────────────────┐      WebSocket         ┌─────────────────────┐
+│   Camera Feed     │ ────────────────────▶  │  FastAPI Inference  │
+│   (OpenCV)        │                        │  Service (YOLOv11m) │
+└───────────────────┘                        └──────────┬──────────┘
                                                         │ annotated frames +
                                                         │ structured detections
                                                         ▼
