@@ -12,7 +12,6 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
 [![YOLO](https://img.shields.io/badge/YOLOv11m-Ultralytics-00FFFF?style=flat-square)](https://github.com/ultralytics/ultralytics)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](#license)
 
 </div>
 
