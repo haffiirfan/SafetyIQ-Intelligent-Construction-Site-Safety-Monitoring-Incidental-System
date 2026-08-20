@@ -68,7 +68,7 @@ All services are orchestrated via **Docker Compose** for reproducible, one-comma
 
 The detection backbone is **YOLOv11m**, fine-tuned on a curated **44,002-image, 9-class PPE dataset** (Hardhat, NO-Hardhat, Safety Vest, NO-Safety Vest, Mask, NO-Mask, Gloves, NO-Gloves, Person).
 
-**Engineering decisions, not just "trained a model":**
+**Engineering pipeline, not just "trained a model":**
 
 - **Class-imbalance correction.** The raw dataset exhibited a **29.3× imbalance** between majority and minority classes, severe enough to bias any model toward ignoring rare-but-safety-critical classes (e.g., NO-Gloves). Correction combined targeted undersampling of majority-class-only images with capped, augmentation-diversified oversampling of minority classes, never blind duplication.
 - **Non-degenerate augmentation.** Mosaic, copy-paste, and affine/HSV transforms were applied per-instance during oversampling, so duplicated minority-class samples were never pixel-identical to their source. Every synthetic "extra" copy contributes a genuinely new gradient signal instead of just increasing loss-weight on a memorized image.
