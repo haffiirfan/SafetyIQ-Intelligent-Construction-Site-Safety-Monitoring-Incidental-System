@@ -30,7 +30,7 @@ The project was undertaken as an independent Final Year Project with the explici
 Two observations motivated this project:
 
 1. **Detection without downstream structure has limited operational value.** A bounding box that isn't logged, aggregated, queried, or reasoned over doesn't change site behavior. Safety-critical systems need a path from *pixel* to *decision*.
-2. **Most "RAG for reports" implementations under-specify grounding.** Bolting a general-purpose LLM onto a log file and prompting it to "summarize incidents" invites hallucination on exactly the kind of structured, high-stakes data where hallucination is least acceptable. SafetyIQ instead treats report generation as a **constrained synthesis problem** over retrieved, verified records,  evaluated with ROUGE and BERTScore, not read-through approval.
+2. **Most RAG implementations under-specify grounding.** Bolting a general-purpose LLM onto a log file and prompting it to "summarize incidents" invites hallucination on exactly the kind of structured, high-stakes data where hallucination is least acceptable. SafetyIQ instead treats report generation as a **constrained synthesis problem** over retrieved, verified records,  evaluated with ROUGE and BERTScore, not read-through approval.
 
 ---
 
