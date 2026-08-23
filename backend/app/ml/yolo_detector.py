@@ -16,25 +16,29 @@ class YOLODetector:
             except Exception as e:
                 print(f"Failed to load model: {e}")
         else:
-            print("No model found - using mock detector")
+            print(f"WARNING: model file not found at {model_path} — detection will be empty")
 
     def set_video(self, video_path: str):
         self.video_path = video_path
 
     def detect(self, frame=None) -> List[Dict]:
-        if frame is not None and self.model:
-            return self._real_detect(frame)
-        return self._mock_detect()
+        # No mock fallback — if there's no frame or no loaded model,
+        # return no detections rather than fabricating data.
+        if frame is None:
+            return []
+        if self.model is None:
+            return []
+        return self._real_detect(frame)
 
     def detect_from_video(self, video_path: str) -> List[Dict]:
         if not self.model:
-            return self._mock_detect()
+            return []
         cap = cv2.VideoCapture(video_path)
         ret, frame = cap.read()
         cap.release()
         if ret:
             return self._real_detect(frame)
-        return self._mock_detect()
+        return []
 
     def _real_detect(self, frame) -> List[Dict]:
         results = self.model(frame, conf=0.5, verbose=False)
@@ -49,18 +53,6 @@ class YOLODetector:
                     "risk":       self._get_risk(cls_name)
                 })
         return detections
-
-    def _mock_detect(self) -> List[Dict]:
-        return [
-            {"class": "NO-Hardhat",     "confidence": 0.91,
-             "bbox": [100,100,200,200], "risk": "Critical"},
-            {"class": "NO-Safety Vest", "confidence": 0.87,
-             "bbox": [150,150,250,300], "risk": "High"},
-            {"class": "Hardhat",        "confidence": 0.95,
-             "bbox": [300,100,400,200], "risk": "None"},
-            {"class": "NO-Mask",        "confidence": 0.83,
-             "bbox": [200,80,280,160],  "risk": "Medium"}
-        ]
 
     def _get_risk(self, class_name: str) -> str:
         risk_map = {
