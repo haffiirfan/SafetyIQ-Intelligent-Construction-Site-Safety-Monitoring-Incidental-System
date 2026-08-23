@@ -10,16 +10,25 @@ export default function useWebSocket(cameraId) {
   useEffect(() => {
     if (!cameraId) return
 
-    const ws = new WebSocket(
-      `ws://127.0.0.1:8000/ws/camera/${cameraId}`
-    )
+    let isCancelled = false
+    const ws = new WebSocket(`ws://127.0.0.1:8000/ws/camera/${cameraId}`)
     wsRef.current = ws
 
-    ws.onopen  = () => setConnected(true)
-    ws.onclose = () => setConnected(false)
-    ws.onerror = (e) => console.error('WebSocket error:', e)
+    ws.onopen = () => {
+      if (!isCancelled) setConnected(true)
+    }
+
+    ws.onclose = () => {
+      if (!isCancelled) setConnected(false)
+    }
+
+    ws.onerror = (e) => {
+      console.error('WebSocket error:', e)
+    }
 
     ws.onmessage = (event) => {
+      if (isCancelled) return
+
       const data = JSON.parse(event.data)
       setDetections(data.detections || [])
 
@@ -36,7 +45,13 @@ export default function useWebSocket(cameraId) {
       })
     }
 
-    return () => ws.close()
+    return () => {
+      isCancelled = true
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close()
+      }
+      wsRef.current = null
+    }
   }, [cameraId])
 
   return { detections, connected }
