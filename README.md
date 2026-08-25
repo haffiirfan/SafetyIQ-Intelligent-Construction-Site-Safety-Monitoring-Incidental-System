@@ -1,6 +1,6 @@
 <div align="center">
 
-# Safety
+# Safetyiq
 
 ### A Production-Oriented Computer Vision and Retrieval-Augmented NLP System for Construction Site Safety Intelligence
 
