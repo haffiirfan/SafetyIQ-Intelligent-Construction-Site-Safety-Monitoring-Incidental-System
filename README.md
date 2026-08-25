@@ -21,7 +21,7 @@
 
 Automated PPE-detection demonstrations are common nowadays; automated PPE-detection **systems** are not. Most published prototypes end at the bounding box, a model that draws boxes around hardhats in a Jupyter notebook, with no path from detection to decision. **SafetyIQ** is built to close that gap. The system fine-tunes **YOLOv11m** on a curated, class-imbalance-corrected, 44,002-image, 9-class PPE dataset, and pairs it with a **retrieval-augmented generation (RAG) pipeline** `sentence-transformers → ChromaDB → T5-base`, that synthesizes grounded, hallucination-resistant incident reports from structured detection logs, rather than free-associating from an LLM's parametric memory. Both are wrapped in a normalized relational schema, a FastAPI/WebSocket real-time inference service, a React dashboard, and a Docker Compose deployment, so the result is a coherent engineering artifact rather than a stitched-together demo.
 
-The project was undertaken as an independent Final Year Project with the explicit goal of demonstrating **end-to-end AI systems engineering**: dataset curation and correction, model fine-tuning, retrieval-grounded NLP, relational data modeling, and production packaging, evaluated quantitatively at every stage rather than assessed by inspection.
+The project was undertaken as an independent prototype model with the explicit goal of demonstrating **end-to-end AI systems engineering**: dataset curation and correction, model fine-tuning, retrieval-grounded NLP, relational data modeling, and production packaging, evaluated quantitatively at every stage rather than assessed by inspection.
 
 ---
 
