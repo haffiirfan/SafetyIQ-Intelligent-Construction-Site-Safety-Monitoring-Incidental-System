@@ -1,13 +1,15 @@
-from fastapi import APIRouter
-from app.schemas.query import QueryRequest, QueryResponse
+ï»¿from fastapi import APIRouter
+from pydantic import BaseModel
+from app.services.rag_service import rag_service
 
-router = APIRouter(prefix="/query", tags=["RAG Query"])
+router = APIRouter(prefix="/query")
 
-@router.post("/", response_model=QueryResponse)
-async def query_rag(request: QueryRequest):
-    # Placeholder — RAG engine connects here in Stage 4
-    return QueryResponse(
-        question=request.question,
-        answer="RAG engine not connected yet. Coming in Stage 4.",
-        sources=[]
-    )
+
+class QueryRequest(BaseModel):
+    question: str
+
+
+@router.post("/")
+def ask_question(req: QueryRequest):
+    result = rag_service.query(req.question)
+    return result

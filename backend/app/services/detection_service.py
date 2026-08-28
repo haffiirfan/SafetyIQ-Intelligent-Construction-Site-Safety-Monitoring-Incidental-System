@@ -3,6 +3,7 @@ from app.models.detection import Detection
 from app.models.violation import Violation
 from app.db.session import SessionLocal
 from app.services.alert_service import alert_service
+from app.services.rag_service import rag_service
 
 VIOLATION_CLASSES = ["NO-Hardhat", "NO-Safety Vest", "NO-Mask", "NO-Gloves"]
 
@@ -41,6 +42,16 @@ async def process_detections(camera_id: int, detections: list, zone: str = "Zone
                 )
                 db.add(violation)
                 db.commit()
+                db.refresh(violation)
+
+                # Index into the RAG vector store so AI Safety Query
+                # can find this violation immediately. Wrapped in a
+                # try/except so an embedding failure never breaks the
+                # core detection pipeline.
+                try:
+                    rag_service.index_violation(violation)
+                except Exception as e:
+                    print(f"RAG indexing failed for violation {violation.id}: {e}")
 
                 # Send email for Critical violations
                 if severity == "Critical":

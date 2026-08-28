@@ -1,26 +1,28 @@
-# Python
+﻿# Python
 backend/venv/
-__pycache__/
+backend/__pycache__/
+backend/**/__pycache__/
 *.pyc
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Large local assets — never push these
+temp_video/
+frontend/public/*.mp4
+backend/chroma_store/
+
+# ML model weights (large, regenerate/download separately)
+ml_training/models/*.pt
+
+# Env/secrets
+.env
 backend/.env
 
-# Database
-*.db
-*.sqlite
-
-# Machine Learning
-*.pt
-*.pth
-ml_training/datasets/
-
-# React
-frontend/node_modules/
-
-# VS Code
-temp_video/
+# Editor/OS
 .vscode/
-<<<<<<< HEAD
-=======
+.DS_Store
 
-frontend/public/*.mp4
->>>>>>> 6f8a587 (Stop tracking local video footage)
+# Root-level accidental install
+node_modules/
