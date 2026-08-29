@@ -2,7 +2,7 @@
 
 # SafetyIQ
 
-### A Production-Oriented Computer Vision and Retrieval-Augmented NLP System for Construction Site Safety Intelligence
+### A Computer Vision and Retrieval-Augmented NLP System for Construction Site Safety Intelligence
 
 *Fine-tuned real-time PPE compliance detection, coupled with a grounded incident-reporting pipeline, deployed as a full-stack, containerized system.*
 
