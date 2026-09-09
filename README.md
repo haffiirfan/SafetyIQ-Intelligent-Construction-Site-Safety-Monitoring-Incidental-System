@@ -142,7 +142,7 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 | Real-time inference latency | **< 20 ms/frame** |
 | Report evaluation | ROUGE-1/2/L, BERTScore *(see `/docs/evaluation`)* |
 
-> Reported detection metrics are computed on an unbalanced, held-out validation/test split, the same distribution the model will face in deployment — rather than a rebalanced evaluation set, which would inflate apparent performance on rare classes.
+> Reported detection metrics are computed on an unbalanced, held-out validation/test split, the same distribution the model will face in deployment, rather than a rebalanced evaluation set, which would inflate apparent performance on rare classes.
 
 ---
 
