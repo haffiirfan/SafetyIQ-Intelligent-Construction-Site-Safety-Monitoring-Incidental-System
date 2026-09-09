@@ -165,4 +165,4 @@ The dashboard will be available at `http://localhost:<port>`, with the inference
 
 ## Project Context
 
-SafetyIQ was developed as an independent **Final Year Project**, engineered end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time inference infrastructure, and a deployable full-stack interface b,uilt to demonstrate **production-oriented AI systems engineering**, not a single-notebook proof of concept.
+SafetyIQ was developed as an independent **Prototype Model**, engineered end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time inference infrastructure, and a deployable full-stack interface b,uilt to demonstrate **production-oriented AI systems engineering**, not a single-notebook proof of concept.
