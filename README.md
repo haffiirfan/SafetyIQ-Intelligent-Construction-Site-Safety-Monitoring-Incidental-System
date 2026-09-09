@@ -78,7 +78,7 @@ The detection backbone is **YOLOv11m**, fine-tuned on a curated **44,002-image, 
 
 ---
 
-## NLP / RAG Incident Intelligence
+## RAG Pipeline Incident Intelligence
 
 Rather than treating "AI reporting" as an LLM wrapper around a database, SafetyIQ implements a **grounded retrieval pipeline** purpose-built for structured safety data:
 
