@@ -124,7 +124,7 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 |---|---|
 | **Computer Vision** | YOLOv11 (Ultralytics), OpenCV, Albumentations |
 | **Backend** | FastAPI, WebSocket, Python 3.12 |
-| **NLP / RAG** | sentence-transformers, ChromaDB, T5-base |
+| **NLP / RAG** | sentence-transformers, ChromaDB, Qwen 2.5 |
 | **Database** | PostgreSQL, SQLAlchemy ORM, Alembic |
 | **Frontend** | React, Vite |
 | **Infrastructure** | Docker, Docker Compose |
