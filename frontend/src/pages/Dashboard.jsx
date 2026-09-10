@@ -34,8 +34,10 @@ export default function Dashboard() {
       </div>
 
       <div className="cam-grid">
-        <CameraFeed cameraId={1} zoneLabel="Main gate" />
-        <CameraFeed cameraId={2} zoneLabel="Zone 2" />
+        <CameraFeed cameraId={1} zoneLabel="Site 1" />
+        <CameraFeed cameraId={2} zoneLabel="Site 2" />
+        <CameraFeed cameraId={3} zoneLabel="Site 3" />
+        <CameraFeed cameraId={4} zoneLabel="Site 4" />
       </div>
 
       <div className="card card-pad" style={{ marginBottom: 40 }}>

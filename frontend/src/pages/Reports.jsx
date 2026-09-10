@@ -16,10 +16,13 @@ export default function Reports() {
   const [loadingList, setLoadingList] = useState(true)
   const [generating, setGenerating] = useState(false)
 
+  // Filters for GENERATING a new report (zone applies here only —
+  // it's not a stored column on the report itself)
   const [genZone, setGenZone] = useState('All zones')
   const [genType, setGenType] = useState('All types')
   const [genDate, setGenDate] = useState('')
 
+  // Filters for the LIST of already-generated reports
   const [listType, setListType] = useState('All types')
   const [listDate, setListDate] = useState('')
 
@@ -67,6 +70,7 @@ export default function Reports() {
         and saved for later review.
       </p>
 
+      {/* Generate a new report */}
       <div className="card card-pad" style={{ marginBottom: 32 }}>
         <div className="eyebrow">Generate a new report</div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -83,6 +87,7 @@ export default function Reports() {
         </div>
       </div>
 
+      {/* List of saved reports */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div className="eyebrow" style={{ marginBottom: 0 }}>Saved reports</div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -100,17 +105,71 @@ export default function Reports() {
       ) : (
         filteredReports.map((r) => {
           const c = RISK[r.risk_type] || RISK.Mixed
+          let parsed = null
+          try { parsed = JSON.parse(r.summary_text) } catch { /* old plain-text report */ }
+
           return (
             <div key={r.id} className="card card-pad" style={{ marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                 <span className="badge" style={{ color: c.color, background: c.soft }}>{r.risk_type}</span>
                 <span style={{ fontSize: 12.5, color: 'var(--text-tertiary)' }}>
                   {new Date(r.created_at).toLocaleString('en-GB', { hour12: false })} · {r.generated_by}
                 </span>
               </div>
-              <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.6, margin: 0 }}>
-                {r.summary_text}
-              </p>
+
+              {!parsed ? (
+                // old-format report, before structured rendering existed
+                <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.6, margin: 0 }}>
+                  {r.summary_text}
+                </p>
+              ) : (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
+                    <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: '10px 14px' }}>
+                      <div className="eyebrow" style={{ marginBottom: 4 }}>Total</div>
+                      <div style={{ fontSize: 18, fontWeight: 600 }}>{parsed.total}</div>
+                    </div>
+                    <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: '10px 14px' }}>
+                      <div className="eyebrow" style={{ marginBottom: 4 }}>Unresolved</div>
+                      <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--critical)' }}>{parsed.unresolved}</div>
+                    </div>
+                    <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: '10px 14px' }}>
+                      <div className="eyebrow" style={{ marginBottom: 4 }}>Resolved</div>
+                      <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--compliant)' }}>{parsed.resolved}</div>
+                    </div>
+                    <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: '10px 14px' }}>
+                      <div className="eyebrow" style={{ marginBottom: 4 }}>Date range</div>
+                      <div style={{ fontSize: 13, fontWeight: 500 }}>{parsed.date_range || '—'}</div>
+                    </div>
+                  </div>
+
+                  {parsed.zones && Object.keys(parsed.zones).length > 0 && (
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+                      {Object.entries(parsed.zones).map(([zone, count]) => (
+                        <span key={zone} className="chip" style={{ fontSize: 12 }}>
+                          {zone}: {count}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: parsed.recommendation ? 12 : 0 }}>
+                    <div className="eyebrow" style={{ marginBottom: 6 }}>Summary</div>
+                    <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.6, margin: 0 }}>
+                      {parsed.summary}
+                    </p>
+                  </div>
+
+                  {parsed.recommendation && (
+                    <div>
+                      <div className="eyebrow" style={{ marginBottom: 6 }}>Recommendation</div>
+                      <p style={{ fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.6, margin: 0 }}>
+                        {parsed.recommendation}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )
         })

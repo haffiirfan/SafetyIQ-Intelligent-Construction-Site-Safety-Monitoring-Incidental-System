@@ -14,7 +14,7 @@ export default function CameraFeed({ cameraId = 1, zoneLabel = 'Zone 1' }) {
   const videoRef = useRef(null)
   const [dims, setDims] = useState({ w: 640, h: 360 })
 
-  const videoSrc = cameraId === 1 ? '/footage_1.mp4' : '/footage_2.mp4'
+  const videoSrc = `/Site_${cameraId}.mp4`
 
   const handleLoaded = () => {
     if (videoRef.current) {
@@ -26,16 +26,25 @@ export default function CameraFeed({ cameraId = 1, zoneLabel = 'Zone 1' }) {
   }
 
   return (
-    <div className="card card-pad">
-      <div className="cam-header">
-        <span className="cam-label">Camera {cameraId} · {zoneLabel}</span>
-        <span className="status-pill" style={{ padding: '5px 12px' }}>
+    <div className="card" style={{ padding: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
+          Camera {cameraId} · {zoneLabel}
+        </span>
+        <span className="status-pill" style={{ padding: '3px 10px' }}>
           <span className="live-dot" style={{ background: connected ? 'var(--critical)' : 'var(--text-tertiary)' }} />
-          {connected ? 'Live' : 'Offline'}
+          <span style={{ fontSize: 10 }}>{connected ? 'Live' : 'Offline'}</span>
         </span>
       </div>
 
-      <div className="cam-frame">
+      <div
+        className="cam-frame"
+        style={{
+          width: '100%',
+          aspectRatio: `${dims.w} / ${dims.h}`,
+          background: '#060607',
+        }}
+      >
         <video
           ref={videoRef}
           src={videoSrc}
@@ -55,9 +64,9 @@ export default function CameraFeed({ cameraId = 1, zoneLabel = 'Zone 1' }) {
             const r = RISK[d.risk] || RISK.None
             return (
               <g key={i}>
-                <rect x={x1} y={y1} width={x2 - x1} height={y2 - y1} fill="none" stroke={r.color} strokeWidth="2" rx="3" />
-                <rect x={x1} y={y1 - 20} width={(d.class.length + 6) * 6.2} height="17" fill={r.color} rx="5" />
-                <text x={x1 + 6} y={y1 - 7} fontFamily="Inter, sans-serif" fontSize="10.5" fontWeight="600" fill="#141414">
+                <rect x={x1} y={y1} width={x2 - x1} height={y2 - y1} fill="none" stroke={r.color} strokeWidth="2" rx="2" />
+                <rect x={x1} y={y1 - 16} width={(d.class.length + 6) * 5.2} height="14" fill={r.color} rx="4" />
+                <text x={x1 + 4} y={y1 - 5} fontFamily="Inter, sans-serif" fontSize="9" fontWeight="600" fill="#141414">
                   {d.class} {Math.round(d.confidence * 100)}%
                 </text>
               </g>
@@ -67,32 +76,29 @@ export default function CameraFeed({ cameraId = 1, zoneLabel = 'Zone 1' }) {
 
         {detections.length > 0 && (
           <div style={{
-            position: 'absolute', top: 12, right: 12, fontSize: 11, color: '#fff',
-            background: 'rgba(0,0,0,0.55)', padding: '4px 10px', borderRadius: 999,
+            position: 'absolute', top: 6, right: 8, fontSize: 9, color: '#fff',
+            background: 'rgba(0,0,0,0.55)', padding: '2px 7px', borderRadius: 999,
           }}>
             {detections.length} detected
           </div>
         )}
       </div>
 
-      <div className="cam-footer">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, minHeight: 20 }}>
         {detections.length === 0 ? (
-          <span style={{ fontSize: 12.5, color: 'var(--text-tertiary)' }}>No active detections</span>
+          <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>No active detections</span>
         ) : (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {detections.slice(0, 3).map((d, i) => {
+          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+            {detections.slice(0, 2).map((d, i) => {
               const r = RISK[d.risk] || RISK.None
               return (
-                <span key={i} className="chip" style={{ color: r.color, borderColor: r.color, fontSize: 11.5, padding: '6px 12px' }}>
+                <span key={i} className="chip" style={{ fontSize: 10, padding: '3px 8px', color: r.color, borderColor: r.color }}>
                   {d.class} · {(d.confidence * 100).toFixed(0)}%
                 </span>
               )
             })}
           </div>
         )}
-        <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-          {new Date().toLocaleTimeString('en-GB', { hour12: false })}
-        </span>
       </div>
     </div>
   )

@@ -16,12 +16,14 @@ app.add_middleware(
 
 app.include_router(api_router, prefix="/api/v1")
 
-
 @app.on_event("startup")
 def load_rag_models():
     print("Preloading RAG models — this may take a while on first run...")
-    rag_service.preload()
-    print("RAG models ready.")
+    try:
+        rag_service.preload()
+        print("RAG models ready.")
+    except Exception as e:
+        print(f"WARNING: RAG preload failed, continuing without it for now: {e}")
 
 
 @app.websocket("/ws/camera/{camera_id}")

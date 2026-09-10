@@ -1,0 +1,53 @@
+﻿services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: safetyiq
+      POSTGRES_PASSWORD: safetyiq
+      POSTGRES_DB: safetyiq
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U safetyiq"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://safetyiq:safetyiq@postgres:5432/safetyiq
+      TEMP_VIDEO_DIR: /temp_video
+      MODEL_PATH: /ml_training_models/best.pt
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ml_training/models:/ml_training_models
+      - ./temp_video:/temp_video
+      - chroma_data:/app/chroma_store
+      - hf_cache:/root/.cache/huggingface
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres_data:
+  chroma_data:
+  hf_cache:
