@@ -1,4 +1,5 @@
 # backend/app/services/detection_service.py
+from datetime import datetime
 from app.models.detection import Detection
 from app.models.violation import Violation
 from app.db.session import SessionLocal
@@ -14,14 +15,36 @@ SEVERITY_MAP = {
     "NO-Gloves":      "Low",
 }
 
+# Deduplication now checks the DATABASE directly, not an in-memory
+# set. An in-memory set gets wiped every time the server restarts or
+# auto-reloads (which happens constantly during development), which
+# let already-logged violations get re-logged after every reload.
+# Checking the database instead makes "already logged" permanent —
+# it survives restarts, reloads, everything — until you explicitly
+# reset the database yourself.
+def _already_logged_in_db(db, camera_id: int, label: str) -> bool:
+    existing = db.query(Detection).filter(
+        Detection.camera_id == camera_id,
+        Detection.label == label,
+    ).first()
+    return existing is not None
+
+
 async def process_detections(camera_id: int, detections: list, zone: str = "Zone A"):
     db = SessionLocal()
     try:
         for d in detections:
-            # Save every detection to database
+            label = d['class']
+
+            # Skip if this exact (camera, label) is already in the
+            # database — permanent, survives restarts, unlike the old
+            # in-memory version.
+            if _already_logged_in_db(db, camera_id, label):
+                continue
+
             detection = Detection(
                 camera_id  = camera_id,
-                label      = d['class'],
+                label      = label,
                 confidence = d['confidence'],
                 frame_path = None
             )
@@ -29,34 +52,28 @@ async def process_detections(camera_id: int, detections: list, zone: str = "Zone
             db.commit()
             db.refresh(detection)
 
-            # If it's a violation — create violation record
-            if d['class'] in VIOLATION_CLASSES:
-                severity = SEVERITY_MAP.get(d['class'], "Low")
+            if label in VIOLATION_CLASSES:
+                severity = SEVERITY_MAP.get(label, "Low")
 
                 violation = Violation(
                     detection_id = detection.id,
                     zone         = zone,
                     severity     = severity,
-                    risk_type    = d['class'],
+                    risk_type    = label,
                     resolved     = False
                 )
                 db.add(violation)
                 db.commit()
                 db.refresh(violation)
 
-                # Index into the RAG vector store so AI Safety Query
-                # can find this violation immediately. Wrapped in a
-                # try/except so an embedding failure never breaks the
-                # core detection pipeline.
                 try:
                     rag_service.index_violation(violation)
                 except Exception as e:
                     print(f"RAG indexing failed for violation {violation.id}: {e}")
 
-                # Send email for Critical violations
                 if severity == "Critical":
                     await alert_service.send_violation_alert(
-                        violation_type = d['class'],
+                        violation_type = label,
                         zone           = zone,
                         confidence     = d['confidence'],
                         camera_id      = camera_id

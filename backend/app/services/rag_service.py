@@ -36,6 +36,7 @@ Model history / decisions:
 """
 
 import os
+import json
 import chromadb
 import torch
 from sentence_transformers import SentenceTransformer
@@ -139,29 +140,62 @@ class RAGService:
         return len(violations)
 
     def generate_report(self, violations: list) -> str:
-        """Generate a written incident-report paragraph directly from a
-        given set of violations — no vector retrieval involved, since
-        the caller has already picked the exact records via filters.
-        Used by the Reports page 'Generate Report' action."""
+        """Generate a structured incident report from a given set of
+        violations. Counts, zone breakdown, and date range are computed
+        directly in Python (100% accurate) — the LLM is only asked to
+        write two short narrative sentences framing those facts, since
+        small models are unreliable at counting things themselves.
+        Returns a JSON string (stored as-is in IncidentReport.summary_text)."""
         self._lazy_load()
 
         if not violations:
-            return "No violations match the current filters, so there is nothing to report."
+            return json.dumps({
+                "total": 0,
+                "resolved": 0,
+                "unresolved": 0,
+                "zones": {},
+                "date_range": None,
+                "summary": "No violations match the current filters, so there is nothing to report.",
+                "recommendation": "",
+            })
 
-        lines = [self._violation_to_text(v) for v in violations]
-        context = "\n".join(f"- {line}" for line in lines)
+        total = len(violations)
+        resolved = sum(1 for v in violations if v.resolved)
+        unresolved = total - resolved
+
+        zones = {}
+        for v in violations:
+            zones[v.zone] = zones.get(v.zone, 0) + 1
+
+        dates = [v.created_at for v in violations if v.created_at]
+        if dates:
+            start = min(dates).strftime("%d %b %Y")
+            end = max(dates).strftime("%d %b %Y")
+            date_range = start if start == end else f"{start} – {end}"
+        else:
+            date_range = None
+
+        facts = (
+            f"Total violations: {total}\n"
+            f"Resolved: {resolved}\n"
+            f"Unresolved: {unresolved}\n"
+            f"By zone: {', '.join(f'{z} ({c})' for z, c in zones.items())}\n"
+            f"Date range: {date_range or 'unknown'}"
+        )
 
         system_prompt = (
             "You are the safety assistant for SafetyIQ, a construction site safety "
-            "monitoring system. Write a short, professional incident report paragraph "
-            "(3-5 sentences) summarizing the violation records below, as if reporting "
-            "to a site safety manager. Mention patterns such as which zone or "
-            "violation type is most common, the time range involved, and how many "
-            "remain unresolved. Base the report ONLY on the records given — never "
-            "invent details, and never refer to a specific employee or worker by "
-            "name, since individual worker identity is not tracked by this system."
+            "monitoring system. You will be given verified statistics about a set of "
+            "logged violations. Write exactly two short sections, in plain sentences "
+            "with NO markdown formatting (no asterisks, no headers, no bullet points, "
+            "no dashes):\n"
+            "SUMMARY: one or two sentences describing the overall pattern.\n"
+            "RECOMMENDATION: one sentence suggesting a practical next step.\n"
+            "Do not repeat the raw numbers verbatim in prose — describe the pattern "
+            "in natural language instead. Never invent details beyond the statistics "
+            "given, and never refer to a specific employee or worker by name."
         )
-        user_prompt = f"Violation records:\n{context}\n\nWrite the incident report."
+        user_prompt = f"Verified statistics:\n{facts}\n\nWrite the SUMMARY and RECOMMENDATION sections."
 
         messages = [
             {"role": "system", "content": system_prompt},
@@ -174,16 +208,34 @@ class RAGService:
 
         outputs = self.gen_model.generate(
             **inputs,
-            max_new_tokens=220,
-            min_new_tokens=40,
+            max_new_tokens=180,
+            min_new_tokens=25,
             do_sample=True,
             temperature=0.4,
             top_p=0.9,
             repetition_penalty=1.15,
         )
-
         generated = outputs[0][inputs["input_ids"].shape[-1]:]
-        return self.gen_tokenizer.decode(generated, skip_special_tokens=True).strip()
+        raw = self.gen_tokenizer.decode(generated, skip_special_tokens=True).strip()
+
+        # Parse the two labeled sections out of the model's plain-text reply
+        summary, recommendation = raw, ""
+        if "RECOMMENDATION:" in raw:
+            parts = raw.split("RECOMMENDATION:", 1)
+            summary = parts[0].replace("SUMMARY:", "").strip()
+            recommendation = parts[1].strip()
+        elif "SUMMARY:" in raw:
+            summary = raw.replace("SUMMARY:", "").strip()
+
+        return json.dumps({
+            "total": total,
+            "resolved": resolved,
+            "unresolved": unresolved,
+            "zones": zones,
+            "date_range": date_range,
+            "summary": summary,
+            "recommendation": recommendation,
+        })
 
     def query(self, question: str, top_k: int = 5) -> dict:
         """Retrieve relevant violations and generate a grounded answer."""

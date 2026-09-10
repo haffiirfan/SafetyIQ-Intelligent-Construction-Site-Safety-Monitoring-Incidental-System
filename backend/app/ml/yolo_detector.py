@@ -2,6 +2,15 @@
 import cv2
 from typing import List, Dict
 
+# Portable model path resolution:
+# - Locally, this defaults to exactly what you've been using —
+#   "../ml_training/models/best.pt", relative to backend/.
+# - Inside Docker, the MODEL_PATH environment variable (set in
+#   docker-compose.yml) overrides this to point at wherever the
+#   model volume was mounted in the Linux container instead.
+MODEL_PATH = os.environ.get("MODEL_PATH", "../ml_training/models/best.pt")
+
+
 class YOLODetector:
     def __init__(self, model_path: str = None):
         self.model = None
@@ -63,4 +72,5 @@ class YOLODetector:
         }
         return risk_map.get(class_name, "None")
 
-detector = YOLODetector(model_path="../ml_training/models/best.pt")
+
+detector = YOLODetector(model_path=MODEL_PATH)

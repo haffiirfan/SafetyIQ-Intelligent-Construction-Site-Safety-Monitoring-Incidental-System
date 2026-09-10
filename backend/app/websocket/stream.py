@@ -7,9 +7,24 @@ import asyncio
 import os
 import time
 
+# Portable video path resolution:
+# - Locally (Windows), this defaults to the temp_video/ folder sitting
+#   next to backend/ and frontend/ at the project root — same location
+#   you've been using all along, just computed automatically instead
+#   of hardcoded to one specific username/path.
+# - Inside Docker, the TEMP_VIDEO_DIR environment variable (set in
+#   docker-compose.yml) overrides this to point at wherever the video
+#   volume was mounted in the Linux container instead.
+_DEFAULT_VIDEO_DIR = os.path.join(
+    os.path.dirname(__file__), "..", "..", "..", "temp_video"
+)
+TEMP_VIDEO_DIR = os.environ.get("TEMP_VIDEO_DIR", _DEFAULT_VIDEO_DIR)
+
 DEMO_VIDEOS = {
-    1: "C:/Users/DELL/Desktop/SafetyIQ/temp_video/footage_1.mp4",
-    2: "C:/Users/DELL/Desktop/SafetyIQ/temp_video/footage_2.mp4",
+    1: os.path.join(TEMP_VIDEO_DIR, "Site_1.mp4"),
+    2: os.path.join(TEMP_VIDEO_DIR, "Site_2.mp4"),
+    3: os.path.join(TEMP_VIDEO_DIR, "Site_3.mp4"),
+    4: os.path.join(TEMP_VIDEO_DIR, "Site_4.mp4"),
 }
 
 # Tracks the single active websocket per camera_id.
@@ -17,6 +32,7 @@ DEMO_VIDEOS = {
 # the old one is force-closed so its loop dies immediately instead
 # of lingering as a "zombie" that keeps failing on send().
 _active_connections = {}
+
 
 async def camera_stream(websocket: WebSocket, camera_id: int):
     await websocket.accept()
