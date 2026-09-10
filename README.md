@@ -56,7 +56,7 @@ Two observations motivated this project:
                 ┌─────────────────────────┐                        ┌───────────────────────┐
                 │  RAG Pipeline           │                        │  React + Vite         │
                 │  sentence-transformers  │                        │  Dashboard            │
-                │  → ChromaDB → T5-base   │                        │  REST + WebSocket     │
+                │  → ChromaDB → Qwen 2.5  │                        │  REST + WebSocket     │
                 └─────────────────────────┘                        └───────────────────────┘
 ```
 
