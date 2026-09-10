@@ -2,7 +2,7 @@
 
 # SafetyIQ
 
-### A Production-Oriented Computer Vision and Retrieval-Augmented NLP System for Construction Site Safety Intelligence
+### A Production-Oriented Computer Vision and Retrieval-Augmented System for Construction Site Safety Intelligence
 
 *Fine-tuned real-time PPE compliance detection, coupled with a grounded incident-reporting pipeline, deployed as a full-stack, containerized system.*
 
@@ -78,7 +78,7 @@ The detection backbone is **YOLOv11m**, fine-tuned on a curated **44,002-image, 
 
 ---
 
-## NLP / RAG Incident Intelligence
+## RAG Pipeline Incident Intelligence
 
 Rather than treating "AI reporting" as an LLM wrapper around a database, SafetyIQ implements a **grounded retrieval pipeline** purpose-built for structured safety data:
 
@@ -142,7 +142,7 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 | Real-time inference latency | **< 20 ms/frame** |
 | Report evaluation | ROUGE-1/2/L, BERTScore *(see `/docs/evaluation`)* |
 
-> Reported detection metrics are computed on an unbalanced, held-out validation/test split, the same distribution the model will face in deployment — rather than a rebalanced evaluation set, which would inflate apparent performance on rare classes.
+> Reported detection metrics are computed on an unbalanced, held-out validation/test split, the same distribution the model will face in deployment, rather than a rebalanced evaluation set, which would inflate apparent performance on rare classes.
 
 ---
 
@@ -165,4 +165,4 @@ The dashboard will be available at `http://localhost:<port>`, with the inference
 
 ## Project Context
 
-SafetyIQ was developed as an independent **Final Year Project**, engineered end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time inference infrastructure, and a deployable full-stack interface b,uilt to demonstrate **production-oriented AI systems engineering**, not a single-notebook proof of concept.
+SafetyIQ was developed as an independent **Prototype Model**, engineered end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time inference infrastructure, and a deployable full-stack interface b,uilt to demonstrate **production-oriented AI systems engineering**.
