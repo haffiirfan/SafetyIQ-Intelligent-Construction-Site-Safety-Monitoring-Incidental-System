@@ -19,7 +19,7 @@
 
 ## Abstract
 
-Automated PPE-detection demonstrations are common nowadays; automated PPE-detection **systems** are not. Most published prototypes end at the bounding box, a model that draws boxes around hardhats in a Jupyter notebook, with no path from detection to decision. **SafetyIQ** is built to close that gap. The system fine-tunes **YOLOv11m** on a curated, class-imbalance-corrected, 44,002-image, 9-class PPE dataset, and pairs it with a **retrieval-augmented generation (RAG) pipeline** `sentence-transformers → ChromaDB → T5-base`, that synthesizes grounded, hallucination-resistant incident reports from structured detection logs, rather than free-associating from an LLM's parametric memory. Both are wrapped in a normalized relational schema, a FastAPI/WebSocket real-time inference service, a React dashboard, and a Docker Compose deployment, so the result is a coherent engineering artifact rather than a stitched-together demo.
+Automated PPE-detection demonstrations are common nowadays; automated PPE-detection **systems** are not. Most published prototypes end at the bounding box, a model that draws boxes around hardhats in a Jupyter notebook, with no path from detection to decision. **SafetyIQ** is built to close that gap. The system fine-tunes **YOLOv11m** on a curated, class-imbalance-corrected, 44,002-image, 9-class PPE dataset, and pairs it with a **retrieval-augmented generation (RAG) pipeline** `sentence-transformers → ChromaDB → Qwen 2.5`, that synthesizes grounded, hallucination-resistant incident reports from structured detection logs, rather than free-associating from an LLM's parametric memory. Both are wrapped in a normalized relational schema, a FastAPI/WebSocket real-time inference service, a React dashboard, and a Docker Compose deployment, so the result is a coherent engineering artifact rather than a stitched-together demo.
 
 The project was undertaken as an independent prototype model with the explicit goal of demonstrating **end-to-end AI systems engineering**: dataset curation and correction, model fine-tuning, retrieval-grounded NLP, relational data modeling, and production packaging, evaluated quantitatively at every stage rather than assessed by inspection.
 
@@ -56,7 +56,7 @@ Two observations motivated this project:
                 ┌─────────────────────────┐                        ┌───────────────────────┐
                 │  RAG Pipeline           │                        │  React + Vite         │
                 │  sentence-transformers  │                        │  Dashboard            │
-                │  → ChromaDB → T5-base   │                        │  REST + WebSocket     │
+                │  → ChromaDB → Qwen 2.5  │                        │  REST + WebSocket     │
                 └─────────────────────────┘                        └───────────────────────┘
 ```
 
@@ -84,7 +84,7 @@ Rather than treating "AI reporting" as an LLM wrapper around a database, SafetyI
 
 - **Embedding generation** via `sentence-transformers`, indexing structured violation records (zone, class, confidence, timestamp, camera) into dense vector space.
 - **Vector retrieval** via **ChromaDB**, surfacing the specific incident records relevant to a natural-language query.
-- **Grounded synthesis** via **T5-base**, constrained to condition generation on retrieved records r,educing the model's ability to fabricate incidents that were never logged.
+- **Grounded synthesis** via **Qwen 2.5**, constrained to condition generation on retrieved records r,educing the model's ability to fabricate incidents that were never logged.
 - **Evaluation against ground truth**, using **ROUGE-1/2/L** and **BERTScore** rather than subjective read-throughs, so report quality is a reported number, not an impression.
 
 This allows a site supervisor to ask a question like *"What zones had the most hardhat violations this week?"* and receive an answer synthesized from real, logged detections, not a plausible-sounding guess.
@@ -124,7 +124,7 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 |---|---|
 | **Computer Vision** | YOLOv11 (Ultralytics), OpenCV, Albumentations |
 | **Backend** | FastAPI, WebSocket, Python 3.12 |
-| **NLP / RAG** | sentence-transformers, ChromaDB, T5-base |
+| **NLP / RAG** | sentence-transformers, ChromaDB, Qwen 2.5 |
 | **Database** | PostgreSQL, SQLAlchemy ORM, Alembic |
 | **Frontend** | React, Vite |
 | **Infrastructure** | Docker, Docker Compose |
