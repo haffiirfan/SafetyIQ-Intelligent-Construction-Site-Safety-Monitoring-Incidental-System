@@ -49,7 +49,7 @@ Two observations motivated this project:
                                           │   (SQLAlchemy + Alembic)  │
                                           │   5-table relational      │
                                           │   schema                  │
-                                          └─────────────┬────────────┘
+                                          └─────────────┬─────────────┘
                                                         │
                             ┌───────────────────────────┼──────────────────────┐
                             ▼                                                  ▼
