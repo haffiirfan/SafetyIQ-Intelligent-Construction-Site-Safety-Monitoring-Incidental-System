@@ -53,11 +53,11 @@ Two observations motivated this project:
                                                      │
                             ┌────────────────────────┼──────────────────────────┐
                             ▼                                                   ▼
-                ┌─────────────────────────┐                        ┌───────────────────────┐
-                │  RAG Pipeline           │                        │  React + Vite         │
-                │  sentence-transformers  │                        │  Dashboard            │
-                │  → ChromaDB → Qwen 2.5  │                        │  REST + WebSocket     │
-                └─────────────────────────┘                        └───────────────────────┘
+                ┌─────────────────────────┐                         ┌───────────────────────┐
+                │  RAG Pipeline           │                         │  React + Vite         │
+                │  sentence-transformers  │                         │  Dashboard            │
+                │  → ChromaDB → Qwen 2.5  │                         │  REST + WebSocket     │
+                └─────────────────────────┘                         └───────────────────────┘
 ```
 
 All services are orchestrated via **Docker Compose** for reproducible, one-command deployment, no manually-managed local environment, no "works on my machine."
