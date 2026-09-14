@@ -1,6 +1,6 @@
 <div align="center">
 
-# SafetyIQ
+# SafetyIQ System
 
 ### A Production-Oriented Computer Vision and Retrieval-Augmented System for Construction Site Safety Intelligence
 
