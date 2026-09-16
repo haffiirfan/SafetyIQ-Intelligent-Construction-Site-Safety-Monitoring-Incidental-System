@@ -38,8 +38,8 @@ Two observations motivated this project:
 
 ```
 ┌───────────────────┐      WebSocket         ┌─────────────────────┐
-│   Camera Feed      │ ────────────────────▶ │  FastAPI Inference  │
-│   (OpenCV)         │                        │  Service (YOLOv11m) │
+│   Camera Feed     │ ────────────────────▶ │  FastAPI Inference  │
+│   (OpenCV)        │                        │  Service (YOLOv11m) │
 └───────────────────┘                        └──────────┬──────────┘
                                                           │ structured
                                                           │ detections
