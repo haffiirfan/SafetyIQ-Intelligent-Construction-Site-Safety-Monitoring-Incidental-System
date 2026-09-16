@@ -19,9 +19,9 @@
 
 ## Abstract
 
-Automated PPE-detection demonstrations are common; automated PPE-detection **systems** are not. Most published prototypes end at the bounding box — a model that draws boxes around hardhats in a notebook, with no path from detection to decision. **SafetyIQ** closes that gap. The system fine-tunes **YOLOv11m** on a curated, class-imbalance-corrected PPE dataset, and pairs it with a **retrieval-augmented generation (RAG) pipeline** (`sentence-transformers → ChromaDB → Qwen2.5-1.5B-Instruct`) that synthesizes grounded incident summaries from structured detection logs, rather than free-associating from an LLM's parametric memory. Both are wrapped in a normalized relational schema, a FastAPI/WebSocket real-time inference service, a React dashboard, and a fully containerized Docker Compose deployment.
+Automated PPE-detection demonstrations are common; automated PPE-detection **systems** are not. Most published prototypes end at the bounding box a model that draws boxes around hardhats in a notebook, with no path from detection to decision. **SafetyIQ** closes that gap. The system fine-tunes **YOLOv11m** on a curated, class-imbalance-corrected PPE dataset, and pairs it with a **retrieval-augmented generation (RAG) pipeline** (`sentence-transformers → ChromaDB → Qwen2.5-1.5B-Instruct`) that synthesizes grounded incident summaries from structured detection logs, rather than free-associating from an LLM's parametric memory. Both are wrapped in a normalized relational schema, a FastAPI/WebSocket real-time inference service, a React dashboard, and a fully containerized Docker Compose deployment.
 
-The project was undertaken as an independent, solo-built prototype with the explicit goal of demonstrating **end-to-end AI systems engineering**: dataset curation and class-imbalance correction, model fine-tuning, retrieval-grounded NLP, relational data modeling, real-time infrastructure, and containerized deployment — evaluated quantitatively, with results reported honestly, including the trade-offs and current limitations of a solo-developed, CPU-deployed system.
+The project was undertaken as an independent, solo-built prototype with the explicit goal of demonstrating **end-to-end AI systems engineering**: dataset curation and class-imbalance correction, model fine-tuning, retrieval-grounded NLP, relational data modeling, real-time infrastructure, and containerized deployment, evaluated quantitatively, with results reported honestly, including the trade-offs and current limitations of a solo-developed, CPU-deployed system.
 
 ---
 
@@ -41,18 +41,18 @@ Two observations motivated this project:
 │   Camera Feed     │ ────────────────────▶ │  FastAPI Inference  │
 │   (OpenCV)        │                        │  Service (YOLOv11m) │
 └───────────────────┘                        └──────────┬──────────┘
-                                                          │ structured
-                                                          │ detections
-                                                          ▼
+                                                        │ structured
+                                                        │ detections
+                                                        ▼
                                           ┌───────────────────────────┐
                                           │   PostgreSQL              │
                                           │   (SQLAlchemy + Alembic)  │
                                           │   6-table relational      │
                                           │   schema                  │
                                           └─────────────┬─────────────┘
-                                                          │
-                            ┌─────────────────────────────┼──────────────────────┐
-                            ▼                                                    ▼
+                                                        │
+                            ┌───────────────────────────┼──────────────────────┐
+                            ▼                                                  ▼
                 ┌─────────────────────────┐                         ┌───────────────────────┐
                 │  RAG Pipeline           │                         │  React + Vite         │
                 │  sentence-transformers  │                         │  Dashboard            │
@@ -60,7 +60,7 @@ Two observations motivated this project:
                 └─────────────────────────┘                         └───────────────────────┘
 ```
 
-All services (PostgreSQL, backend, frontend) are orchestrated via **Docker Compose** for reproducible, one-command deployment — no manually-managed local environment, no "works on my machine."
+All services (PostgreSQL, backend, frontend) are orchestrated via **Docker Compose** for reproducible, one-command deployment, no manually-managed local environment, no "works on my machine."
 
 ---
 
@@ -70,9 +70,9 @@ The detection backbone is **YOLOv11m**, fine-tuned on a curated **9-class PPE da
 
 **Engineering pipeline, not just "trained a model":**
 
-- **Class-imbalance correction.** The raw dataset exhibited severe imbalance between majority classes (e.g., Hardhat) and minority, safety-critical classes (e.g., NO-Gloves, NO-Mask). Correction combined **capped undersampling** of majority-class-only images (capped at 15,000) with **augmentation-diversified oversampling** (2–3×) of minority classes — never blind duplication.
+- **Class-imbalance correction.** The raw dataset exhibited severe imbalance between majority classes (e.g., Hardhat) and minority, safety-critical classes (e.g., NO-Gloves, NO-Mask). Correction combined **capped undersampling** of majority-class-only images (capped at 15,000) with **augmentation-diversified oversampling** (2–3×) of minority classes, never blind duplication.
 - **Non-degenerate augmentation.** Horizontal flips, brightness/contrast/HSV jitter, affine transforms, and Gaussian noise (via Albumentations) were applied per-instance during oversampling, so duplicated minority-class samples were never pixel-identical to their source.
-- **Image-level filtering, instance-level balancing.** Object detection is inherently multi-label — one image can contain several co-occurring classes. Balancing decisions were made per-image based on which rare classes were present, avoiding the common failure mode of naively duplicating whole images and re-inflating the majority class.
+- **Image-level filtering, instance-level balancing.** Object detection is inherently multi-label, one image can contain several co-occurring classes. Balancing decisions were made per-image based on which rare classes were present, avoiding the common failure mode of naively duplicating whole images and re-inflating the majority class.
 - **Training regime.** 50 epochs, YOLO11m, mixed-precision (AMP), trained on a Tesla T4 GPU (Google Colab), with mosaic, HSV, and flip augmentation during training.
 
 ### Results (Verified)
@@ -85,7 +85,7 @@ The detection backbone is **YOLOv11m**, fine-tuned on a curated **9-class PPE da
 | Recall | **0.850** (85.0%) | Model misses only ~15% of real violations |
 | Inference latency (CPU) | **~817 ms/frame** (median) | Intel i5-10210U, no GPU — see *Deployment Trade-offs* below |
 
-> **On the precision/recall trade-off:** SafetyIQ's recall (85%) substantially exceeds its precision (66%) — a deliberate consequence of the class-balancing strategy, which biased the model toward not missing rare violation classes. For a safety-critical system, this is the correct trade-off: a false alarm costs a supervisor a few seconds of review; a missed hardhat violation carries real physical risk. This asymmetry was a design choice, not an artifact.
+> **On the precision/recall trade-off:** SafetyIQ's recall (85%) substantially exceeds its precision (66%), a deliberate consequence of the class-balancing strategy, which biased the model toward not missing rare violation classes. For a safety-critical system, this is the correct trade-off: a false alarm costs a supervisor a few seconds of review; a missed hardhat violation carries real physical risk. This asymmetry was a design choice, not an artifact.
 
 > **On dataset difficulty:** the source dataset's raw class imbalance meant several PPE classes had an order of magnitude fewer labeled instances than the majority class prior to correction. The reported mAP reflects genuine detection difficulty on a still-imperfectly-balanced 9-class problem, not an inflated number computed on an artificially rebalanced evaluation set.
 
@@ -97,7 +97,7 @@ Rather than treating "AI reporting" as an LLM wrapper around a database, SafetyI
 
 - **Embedding generation** via `sentence-transformers`, indexing structured violation records (zone, class, confidence, timestamp, camera) into dense vector space.
 - **Vector retrieval** via **ChromaDB**, surfacing the specific incident records relevant to a natural-language query.
-- **Grounded synthesis** via **Qwen2.5-1.5B-Instruct**, constrained to condition its answer on retrieved records — reducing the model's ability to fabricate incidents that were never logged. In testing, when asked about a zone or violation with no matching database records, the system correctly reports the absence of data rather than inventing a plausible-sounding answer.
+- **Grounded synthesis** via **Qwen2.5-1.5B-Instruct**, constrained to condition its answer on retrieved records, reducing the model's ability to fabricate incidents that were never logged. In testing, when asked about a zone or violation with no matching database records, the system correctly reports the absence of data rather than inventing a plausible-sounding answer.
 
 This lets a site supervisor ask a question like *"Which zone had the most violations?"* and receive an answer synthesized from real, logged detections.
 
@@ -116,7 +116,7 @@ This latency reflects **CPU-only autoregressive generation** from a 1.5B-paramet
 - **6-table normalized relational schema** — `cameras`, `detections`, `violations`, `incident_reports`, `users`, `workers` — implemented with **SQLAlchemy ORM**.
 - **Alembic migrations** for versioned, reproducible schema evolution — schema changes are tracked artifacts, not manual `ALTER` statements.
 - Every YOLO detection is **auto-logged**; violations are **auto-flagged** by confidence threshold and PPE class, with **database-backed deduplication** (not in-memory) so repeated detections of the same violation survive service restarts without re-triggering alerts.
-- **Worker-level violation tracking** — violations can be queried per-worker, not just per-camera/zone.
+- **Worker-level violation tracking** violations can be queried per-worker, not just per-camera/zone.
 - **Violation heatmap endpoint** for spatial/zone-level aggregation.
 
 ---
@@ -125,8 +125,8 @@ This latency reflects **CPU-only autoregressive generation** from a 1.5B-paramet
 
 - **FastAPI + WebSocket** streaming architecture ingests live OpenCV camera frames, one persistent connection per camera.
 - **YOLOv11m** runs inference directly in the streaming path, returning detections with **Critical / High / Medium / Low** risk-level classification per PPE class.
-- **Connection supersession handling** — if a camera's stream is re-opened, the previous WebSocket connection is force-closed server-side rather than left to silently fail, preventing zombie connections under reconnect/reload scenarios.
-- **CPU-based inference at ~817ms/frame (~1.2 fps)** — sufficient for a safety-monitoring use case (violations need to be caught within seconds, not milliseconds) though not real-time in the video-processing sense; GPU deployment would substantially close this gap.
+- **Connection supersession handling** if a camera's stream is re-opened, the previous WebSocket connection is force-closed server-side rather than left to silently fail, preventing zombie connections under reconnect/reload scenarios.
+- **CPU-based inference at ~817ms/frame (~1.2 fps)** sufficient for a safety-monitoring use case (violations need to be caught within seconds, not milliseconds) though not real-time in the video-processing sense; GPU deployment would substantially close this gap.
 
 ---
 
@@ -153,7 +153,7 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 | **Auth** | JWT (python-jose), bcrypt password hashing |
 | **Frontend** | React, Vite |
 | **Infrastructure** | Docker, Docker Compose |
-| **Evaluation** | mAP@0.5 / mAP@0.5:0.95, precision/recall, latency benchmarking, BERTScore *(in progress — see below)* |
+| **Evaluation** | mAP@0.5 / mAP@0.5:0.95, precision/recall, latency benchmarking, BERTScore *(in progress | see below)* |
 
 ---
 
@@ -161,9 +161,9 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 
 This project distinguishes between **verified, measured results** and **planned, in-progress evaluation** — deliberately, rather than presenting both as equally complete:
 
-- ✅ **Detection metrics (mAP, precision, recall)** — measured directly via `yolo val` against the held-out validation split from training.
-- ✅ **Inference latency (detection + AI Query)** — measured directly via repeated timed trials on the actual running system.
-- 🔶 **RAG output quality (ROUGE / BERTScore)** — methodology defined (hand-written reference answers scored against real system outputs via BERTScore/ROUGE-L), evaluation currently limited by a small number of accumulated violation records in the demo environment. Being expanded as the system continues logging live detections.
+-  **Detection metrics (mAP, precision, recall)** — measured directly via `yolo val` against the held-out validation split from training.
+-  **Inference latency (detection + AI Query)** — measured directly via repeated timed trials on the actual running system.
+-  **RAG output quality (ROUGE / BERTScore)** — methodology defined (hand-written reference answers scored against real system outputs via BERTScore/ROUGE-L), evaluation currently limited by a small number of accumulated violation records in the demo environment. Being expanded as the system continues logging live detections.
 
 ---
 
@@ -187,7 +187,7 @@ docker compose exec backend alembic upgrade head
 
 The dashboard is available at `http://localhost:5173`, with the FastAPI inference/REST/WebSocket service running at `http://localhost:8000`.
 
-> Model weights (`best.pt`) and demo video footage are not committed to this repository due to size — see `docker-compose.yml` for the expected local paths these are mounted from (`ml_training/models/`, `temp_video/`).
+> Model weights (`best.pt`) and demo video footage are not committed to this repository due to size see `docker-compose.yml` for the expected local paths these are mounted from (`ml_training/models/`, `temp_video/`).
 
 ---
 
@@ -195,13 +195,13 @@ The dashboard is available at `http://localhost:5173`, with the FastAPI inferenc
 
 Stated directly, rather than omitted:
 
-- **CPU-only deployment** in the current demo environment — both YOLO inference (~817ms/frame) and RAG generation (~34s/query) would see substantial latency improvements on GPU hardware.
-- **Demo cameras use looped local video files**, not live RTSP feeds from physical cameras — the architecture supports real camera integration, but this has not yet been tested against live hardware.
+- **CPU-only deployment** in the current demo environment both YOLO inference (~817ms/frame) and RAG generation (~34s/query) would see substantial latency improvements on GPU hardware.
+- **Demo cameras use looped local video files**, not live RTSP feeds from physical cameras the architecture supports real camera integration, but this has not yet been tested against live hardware.
 - **RAG evaluation (ROUGE/BERTScore) is in progress**, currently constrained by limited accumulated violation data in the demo environment rather than a methodological gap.
-- **Solo-developed, prototype-stage project** — not yet load-tested, and authentication/authorization has not undergone formal security review.
+- **Solo-developed, prototype-stage project** not yet load-tested, and authentication/authorization has not undergone formal security review.
 
 ---
 
 ## Project Context
 
-SafetyIQ was developed independently, end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time WebSocket inference infrastructure, JWT authentication, and a fully containerized full-stack deployment — built to demonstrate applied AI systems engineering, with results reported as measured, not as aspired to.
+SafetyIQ was developed independently, end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time WebSocket inference infrastructure, JWT authentication, and a fully containerized full-stack deployment built to demonstrate applied AI systems engineering, with results reported as measured, not as aspired to.
