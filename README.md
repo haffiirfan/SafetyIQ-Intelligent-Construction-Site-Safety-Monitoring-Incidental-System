@@ -159,11 +159,11 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 
 ## Evaluation Status
 
-This project distinguishes between **verified, measured results** and **planned, in-progress evaluation** — deliberately, rather than presenting both as equally complete:
+This project distinguishes between **verified, measured results** and **planned, in-progress evaluation** deliberately, rather than presenting both as equally complete:
 
--  **Detection metrics (mAP, precision, recall)** — measured directly via `yolo val` against the held-out validation split from training.
--  **Inference latency (detection + AI Query)** — measured directly via repeated timed trials on the actual running system.
--  **RAG output quality (ROUGE / BERTScore)** — methodology defined (hand-written reference answers scored against real system outputs via BERTScore/ROUGE-L), evaluation currently limited by a small number of accumulated violation records in the demo environment. Being expanded as the system continues logging live detections.
+-  **Detection metrics (mAP, precision, recall)** measured directly via `yolo val` against the held-out validation split from training.
+-  **Inference latency (detection + AI Query)** measured directly via repeated timed trials on the actual running system.
+-  **RAG output quality (ROUGE / BERTScore)** methodology defined (hand-written reference answers scored against real system outputs via BERTScore/ROUGE-L), evaluation currently limited by a small number of accumulated violation records in the demo environment. Being expanded as the system continues logging live detections.
 
 ---
 
