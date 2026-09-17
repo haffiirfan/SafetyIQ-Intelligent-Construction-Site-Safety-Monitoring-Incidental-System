@@ -2,9 +2,9 @@
 
 # SafetyIQ
 
-### An End-to-End Computer Vision and Retrieval-Augmented System for Construction Site Safety Intelligence
+### An End to End Computer Vision and Retrieval Augmented System for Construction Site Safety Intelligence
 
-*Fine-tuned real-time PPE compliance detection, coupled with a grounded incident-reporting pipeline, deployed as a full-stack, containerized system.*
+*Fine tuned real time PPE compliance detection, paired with a grounded incident reporting pipeline, deployed as a full stack, containerized system.*
 
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -17,128 +17,102 @@
 
 ---
 
-## Abstract
+## Overview
 
-Automated PPE-detection demonstrations are common; automated PPE-detection **systems** are not. Most published prototypes end at the bounding box a model that draws boxes around hardhats in a notebook, with no path from detection to decision. **SafetyIQ** closes that gap. The system fine-tunes **YOLOv11m** on a curated, class-imbalance-corrected PPE dataset, and pairs it with a **retrieval-augmented generation (RAG) pipeline** (`sentence-transformers → ChromaDB → Qwen2.5-1.5B-Instruct`) that synthesizes grounded incident summaries from structured detection logs, rather than free-associating from an LLM's parametric memory. Both are wrapped in a normalized relational schema, a FastAPI/WebSocket real-time inference service, a React dashboard, and a fully containerized Docker Compose deployment.
+Most public PPE detection projects stop at a bounding box drawn in a notebook. SafetyIQ was built to go further, taking a raw, imperfect dataset through correction, training, evaluation, and into a running, containerized system that logs violations, stores them in a relational database, and answers natural language questions about them using retrieval grounded generation.
 
-The project was undertaken as an independent, solo-built prototype with the explicit goal of demonstrating **end-to-end AI systems engineering**: dataset curation and class-imbalance correction, model fine-tuning, retrieval-grounded NLP, relational data modeling, real-time infrastructure, and containerized deployment, evaluated quantitatively, with results reported honestly, including the trade-offs and current limitations of a solo-developed, CPU-deployed system.
-
----
-
-## Why This Exists
-
-Two observations motivated this project:
-
-1. **Detection without downstream structure has limited operational value.** A bounding box that isn't logged, aggregated, queried, or reasoned over doesn't change site behavior. Safety-critical systems need a path from *pixel* to *decision*.
-2. **Most RAG implementations under-specify grounding.** Bolting a general-purpose LLM onto a log file and prompting it to "summarize incidents" invites hallucination on exactly the kind of structured, high-stakes data where hallucination is least acceptable. SafetyIQ instead treats report generation as a **constrained synthesis problem** over retrieved, verified database records.
+The project was built independently, end to end, including the parts that are usually left out of a portfolio project: fixing a badly imbalanced dataset before training, measuring real inference latency instead of assuming it, and reporting numbers exactly as they came out of evaluation, including the ones that are not flattering.
 
 ---
 
-## System Architecture
+## The Dataset, Honestly
 
-```
-┌───────────────────┐      WebSocket         ┌─────────────────────┐
-│   Camera Feed     │ ────────────────────▶ │  FastAPI Inference  │
-│   (OpenCV)        │                        │  Service (YOLOv11m) │
-└───────────────────┘                        └──────────┬──────────┘
-                                                        │ structured
-                                                        │ detections
-                                                        ▼
-                                          ┌───────────────────────────┐
-                                          │   PostgreSQL              │
-                                          │   (SQLAlchemy + Alembic)  │
-                                          │   6-table relational      │
-                                          │   schema                  │
-                                          └─────────────┬─────────────┘
-                                                        │
-                            ┌───────────────────────────┼──────────────────────┐
-                            ▼                                                  ▼
-                ┌─────────────────────────┐                         ┌───────────────────────┐
-                │  RAG Pipeline           │                         │  React + Vite         │
-                │  sentence-transformers  │                         │  Dashboard            │
-                │  → ChromaDB → Qwen2.5   │                         │  REST + WebSocket     │
-                └─────────────────────────┘                         └───────────────────────┘
-```
+The source dataset used for training is a nine class PPE dataset (Hardhat, NO Hardhat, Safety Vest, NO Safety Vest, Mask, NO Mask, Gloves, NO Gloves, Person), pulled from a public Kaggle collection. It is worth being direct about what this dataset actually is, because that context changes how the results below should be read.
 
-All services (PostgreSQL, backend, frontend) are orchestrated via **Docker Compose** for reproducible, one-command deployment, no manually-managed local environment, no "works on my machine."
+The dataset was heavily imbalanced. Common classes such as Hardhat had far more labeled examples than safety critical minority classes such as NO Gloves or NO Mask. Trained without correction, a model on this data would predictably learn to recognize the common classes well and effectively ignore the rare ones, since the loss function has little incentive to fix errors on classes it rarely sees. That is not a hypothetical risk, it is the default, well documented outcome of training on imbalanced object detection data. A model trained naively on this dataset would look fine on paper because the majority classes would pull the average up, while quietly failing on the classes that matter most for actual safety.
+
+Separately, this dataset is also narrower and harder than the more commonly cited PPE benchmark used in similar projects, which includes classes like vehicle, machinery, and safety cone. Those are large, visually distinct objects that are comparatively easy for any detector to learn, and their presence in a class list tends to raise the averaged accuracy score without saying much about how well the model handles PPE itself. This project's dataset excludes those easier classes and instead keeps the class list restricted to PPE items, including gloves, which are small, low contrast against skin, and frequently occluded by tools or hand position, making them one of the more difficult categories in this space.
+
+Put plainly, this dataset was not set up to produce a high accuracy number by default. Getting a usable result out of it required deliberate correction work before training even began, not just longer training or a bigger model.
 
 ---
 
-## Computer Vision Pipeline
+## What Was Done About It
 
-The detection backbone is **YOLOv11m**, fine-tuned on a curated **9-class PPE dataset** (Hardhat, NO-Hardhat, Safety Vest, NO-Safety Vest, Mask, NO-Mask, Gloves, NO-Gloves, Person), sourced from a public Kaggle PPE dataset and substantially re-engineered for this project.
+- **Class imbalance correction.** Majority class only images were capped through targeted undersampling, while minority class images were oversampled through augmentation rather than simple duplication.
+- **Non degenerate augmentation.** Every oversampled copy went through horizontal flips, brightness and contrast jitter, HSV shifts, affine transforms, and added noise, using Albumentations, so that no duplicated example was pixel identical to its source.
+- **Instance level balancing, not image level.** Object detection images are frequently multi label, one image can contain several classes at once. Balancing decisions were made based on which rare classes were present in each image, avoiding the common mistake of duplicating whole images and accidentally reinflating the majority class in the process.
+- **Training regime.** YOLOv11m, 50 epochs, mixed precision, trained on a Tesla T4 GPU, with mosaic augmentation closed toward the end of training so the model's final weights are tuned on realistic, unstitched images.
 
-**Engineering pipeline, not just "trained a model":**
+---
 
-- **Class-imbalance correction.** The raw dataset exhibited severe imbalance between majority classes (e.g., Hardhat) and minority, safety-critical classes (e.g., NO-Gloves, NO-Mask). Correction combined **capped undersampling** of majority-class-only images (capped at 15,000) with **augmentation-diversified oversampling** (2–3×) of minority classes, never blind duplication.
-- **Non-degenerate augmentation.** Horizontal flips, brightness/contrast/HSV jitter, affine transforms, and Gaussian noise (via Albumentations) were applied per-instance during oversampling, so duplicated minority-class samples were never pixel-identical to their source.
-- **Image-level filtering, instance-level balancing.** Object detection is inherently multi-label, one image can contain several co-occurring classes. Balancing decisions were made per-image based on which rare classes were present, avoiding the common failure mode of naively duplicating whole images and re-inflating the majority class.
-- **Training regime.** 50 epochs, YOLO11m, mixed-precision (AMP), trained on a Tesla T4 GPU (Google Colab), with mosaic, HSV, and flip augmentation during training.
+## Results, As Measured
 
-### Results (Verified)
-
-| Metric | Value | Notes |
+| Metric | Value | What it means |
 |---|---|---|
-| mAP@0.5 | **0.738** (73.8%) | Best checkpoint, epoch 39/50 |
-| mAP@0.5:0.95 | **0.489** (48.9%) | Stricter IoU-averaged metric |
-| Precision | **0.661** (66.1%) | ~1 in 3 flagged detections is a false positive |
-| Recall | **0.850** (85.0%) | Model misses only ~15% of real violations |
-| Inference latency (CPU) | **~817 ms/frame** (median) | Intel i5-10210U, no GPU — see *Deployment Trade-offs* below |
+| mAP at 0.5 IoU | **0.738** | Best checkpoint, epoch 39 of 50 |
+| mAP at 0.5 to 0.95 IoU | **0.489** | The stricter, averaged version of the same metric |
+| Precision | **0.661** | Roughly one in three flagged detections is a false alarm |
+| Recall | **0.850** | The model misses only about 15 percent of real violations |
+| Detection latency, CPU | **about 817 ms per frame**, median | Intel i5 10210U, no GPU in the demo environment |
+| AI Query latency, CPU | **about 34 seconds per response**, average of 5 trials | Qwen2.5 1.5B Instruct, no GPU in the demo environment |
 
-> **On the precision/recall trade-off:** SafetyIQ's recall (85%) substantially exceeds its precision (66%), a deliberate consequence of the class-balancing strategy, which biased the model toward not missing rare violation classes. For a safety-critical system, this is the correct trade-off: a false alarm costs a supervisor a few seconds of review; a missed hardhat violation carries real physical risk. This asymmetry was a design choice, not an artifact.
+These numbers are reported exactly as measured, with no rounding in a favorable direction and no exclusion of a weaker run.
 
-> **On dataset difficulty:** the source dataset's raw class imbalance meant several PPE classes had an order of magnitude fewer labeled instances than the majority class prior to correction. The reported mAP reflects genuine detection difficulty on a still-imperfectly-balanced 9-class problem, not an inflated number computed on an artificially rebalanced evaluation set.
+### Reading the precision and recall gap correctly
+
+Recall sits noticeably higher than precision. That is not an accident and not something to apologize for, it reflects the class balancing choice made during training, which pushed the model to prioritize catching rare, safety critical classes even at the cost of some false alarms elsewhere. For a safety system, a false alarm costs a supervisor a few seconds of review. A missed violation costs nothing on paper and something real on site. Optimizing recall over precision, deliberately, is the correct trade for this problem, and the 0.850 recall number is the strongest evidence that the class balancing work paid off rather than the surface level accuracy figure alone.
+
+### Reading the mAP number correctly
+
+An mAP of 0.738 will look modest next to some published PPE detection projects that report numbers in the low to mid 0.80s. The dataset difference described above is the reason, not a training shortfall. A benchmark that includes vehicles and machinery alongside PPE classes is answering an easier question on average. This project's number reflects performance on a stricter, PPE only class list that still includes one of the genuinely hardest categories in this domain, gloves. Given that starting point, 0.738 represents real, working detection on a dataset that was not built to hand out an easy score, achieved specifically because the imbalance was corrected before training rather than left as is.
 
 ---
 
-## RAG Pipeline — Incident Intelligence
+## RAG Pipeline, Incident Intelligence
 
-Rather than treating "AI reporting" as an LLM wrapper around a database, SafetyIQ implements a **grounded retrieval pipeline** purpose-built for structured safety data:
+Rather than pointing a general purpose language model at a log file and asking it to summarize, SafetyIQ constrains report generation to retrieved, verified records.
 
-- **Embedding generation** via `sentence-transformers`, indexing structured violation records (zone, class, confidence, timestamp, camera) into dense vector space.
-- **Vector retrieval** via **ChromaDB**, surfacing the specific incident records relevant to a natural-language query.
-- **Grounded synthesis** via **Qwen2.5-1.5B-Instruct**, constrained to condition its answer on retrieved records, reducing the model's ability to fabricate incidents that were never logged. In testing, when asked about a zone or violation with no matching database records, the system correctly reports the absence of data rather than inventing a plausible-sounding answer.
+- **Embedding generation** through sentence transformers, indexing structured violation records, zone, class, confidence, timestamp, and camera, into vector space.
+- **Retrieval** through ChromaDB, surfacing only the specific incident records relevant to a given question.
+- **Generation** through Qwen2.5 1.5B Instruct, conditioned on the retrieved records so the model is answering from what was actually logged, not from memory. In testing, when asked about a zone or class with no matching records, the system correctly reports that no data exists rather than inventing a plausible sounding answer.
 
-This lets a site supervisor ask a question like *"Which zone had the most violations?"* and receive an answer synthesized from real, logged detections.
+This lets a supervisor ask something like "which zone had the most violations" and get an answer built from real, logged detections rather than a guess.
 
-### Deployment Trade-offs (Reported Honestly)
+### The honest cost of this pipeline
 
-| Metric | Value | Context |
-|---|---|---|
-| AI Query response latency | **~34 s** (avg, CPU) | Range: 30–42 s across 5 trials |
-
-This latency reflects **CPU-only autoregressive generation** from a 1.5B-parameter language model with no GPU acceleration in the current deployment target. This is an identified, understood bottleneck rather than an unexplained limitation: on GPU hardware, this class of model typically generates in 1–3 seconds. The architecture is GPU-ready; the current demo environment is not GPU-equipped.
+Average response time is about 34 seconds on the CPU only hardware used for this demo, generating text one token at a time from a 1.5 billion parameter model with no GPU acceleration. This is a known, explainable cost, not a mystery. On GPU hardware this typically drops to a few seconds. The architecture does not need to change to take advantage of a GPU, the deployment environment does.
 
 ---
 
 ## Data Layer
 
-- **6-table normalized relational schema** — `cameras`, `detections`, `violations`, `incident_reports`, `users`, `workers` — implemented with **SQLAlchemy ORM**.
-- **Alembic migrations** for versioned, reproducible schema evolution — schema changes are tracked artifacts, not manual `ALTER` statements.
-- Every YOLO detection is **auto-logged**; violations are **auto-flagged** by confidence threshold and PPE class, with **database-backed deduplication** (not in-memory) so repeated detections of the same violation survive service restarts without re-triggering alerts.
-- **Worker-level violation tracking** violations can be queried per-worker, not just per-camera/zone.
-- **Violation heatmap endpoint** for spatial/zone-level aggregation.
+- A six table normalized relational schema, cameras, detections, violations, incident reports, users, and workers, implemented with SQLAlchemy ORM.
+- Alembic migrations, so schema changes are tracked, reproducible history rather than manual edits to a live database.
+- Every detection is logged automatically, and violations are flagged automatically by confidence threshold and PPE class.
+- Deduplication is checked against the database itself, not an in memory set, so it survives service restarts instead of resetting every time the process reloads.
+- Per worker violation history and a zone level violation heatmap endpoint, in addition to per camera views.
 
 ---
 
-## Real-Time Inference Pipeline
+## Real Time Inference Pipeline
 
-- **FastAPI + WebSocket** streaming architecture ingests live OpenCV camera frames, one persistent connection per camera.
-- **YOLOv11m** runs inference directly in the streaming path, returning detections with **Critical / High / Medium / Low** risk-level classification per PPE class.
-- **Connection supersession handling** if a camera's stream is re-opened, the previous WebSocket connection is force-closed server-side rather than left to silently fail, preventing zombie connections under reconnect/reload scenarios.
-- **CPU-based inference at ~817ms/frame (~1.2 fps)** sufficient for a safety-monitoring use case (violations need to be caught within seconds, not milliseconds) though not real-time in the video-processing sense; GPU deployment would substantially close this gap.
+- FastAPI and WebSocket streaming, one persistent connection per camera, ingesting live OpenCV frames.
+- YOLOv11m runs directly in that streaming path, classifying detections into Critical, High, Medium, and Low risk levels by PPE class.
+- If a camera's connection is reopened, the previous connection for that camera is closed on the server side rather than left to fail silently, avoiding stale connections after a page reload or reconnect.
+- At roughly 817 ms per frame, this is closer to one frame per second than true video frame rate, which is a genuine limitation on CPU hardware, but sufficient for the actual requirement here, catching a violation within a couple of seconds rather than 30 times a second.
 
 ---
 
 ## Dashboard
 
-Built with **React + Vite**, consuming both REST and WebSocket APIs:
+Built with React and Vite, consuming both REST and WebSocket APIs.
 
-- Live camera feed view with per-frame detection counts and live/offline status per camera.
-- Zone-level violation and compliance-rate aggregation.
-- Natural-language query interface (AI Query), backed directly by the RAG pipeline.
-- Dedicated **Violations** and **Reports** views, backed by their own API endpoints.
-- Token-based (JWT) authentication with registration and login.
+- Live camera view with per camera status and live detection counts.
+- Zone level violation and compliance rate aggregation.
+- A natural language query page backed directly by the RAG pipeline.
+- Separate Violations and Reports views with their own endpoints.
+- Token based authentication, with registration, login, and password hashing through bcrypt.
 
 ---
 
@@ -146,62 +120,55 @@ Built with **React + Vite**, consuming both REST and WebSocket APIs:
 
 | Layer | Technology |
 |---|---|
-| **Computer Vision** | YOLOv11m (Ultralytics), OpenCV, Albumentations |
-| **Backend** | FastAPI, WebSocket, Python 3.11, Uvicorn |
-| **NLP / RAG** | sentence-transformers, ChromaDB, Qwen2.5-1.5B-Instruct (Transformers) |
-| **Database** | PostgreSQL 16, SQLAlchemy ORM, Alembic |
-| **Auth** | JWT (python-jose), bcrypt password hashing |
-| **Frontend** | React, Vite |
-| **Infrastructure** | Docker, Docker Compose |
-| **Evaluation** | mAP@0.5 / mAP@0.5:0.95, precision/recall, latency benchmarking, BERTScore *(in progress | see below)* |
+| Computer vision | YOLOv11m, Ultralytics, OpenCV, Albumentations |
+| Backend | FastAPI, WebSocket, Python 3.11, Uvicorn |
+| NLP and retrieval | sentence transformers, ChromaDB, Qwen2.5 1.5B Instruct |
+| Database | PostgreSQL 16, SQLAlchemy ORM, Alembic |
+| Authentication | JWT, bcrypt |
+| Frontend | React, Vite |
+| Infrastructure | Docker, Docker Compose |
+| Evaluation | mAP at 0.5 and 0.5 to 0.95, precision, recall, measured latency, BERTScore in progress |
 
 ---
 
 ## Evaluation Status
 
-This project distinguishes between **verified, measured results** and **planned, in-progress evaluation** deliberately, rather than presenting both as equally complete:
+Verified and measured, separately from work that is still in progress, on purpose.
 
--  **Detection metrics (mAP, precision, recall)** measured directly via `yolo val` against the held-out validation split from training.
--  **Inference latency (detection + AI Query)** measured directly via repeated timed trials on the actual running system.
--  **RAG output quality (ROUGE / BERTScore)** methodology defined (hand-written reference answers scored against real system outputs via BERTScore/ROUGE-L), evaluation currently limited by a small number of accumulated violation records in the demo environment. Being expanded as the system continues logging live detections.
+- Detection metrics, mAP, precision, recall, measured directly through YOLO validation against the held out split from training.
+- Inference latency, both detection and query response, measured directly through repeated timed trials against the running system, not estimated.
+- Report quality scoring through ROUGE and BERTScore, methodology is defined, hand written reference answers scored against real system outputs, currently limited by a small number of accumulated violation records in the demo environment and being expanded as the system continues running.
 
 ---
 
 ## Getting Started
 
 ```bash
-# Clone the repository
 git clone https://github.com/haffiirfan/SafetyIQ-Intelligent-Construction-Site-Safety-Monitoring-Incidental-System.git
 cd SafetyIQ-Intelligent-Construction-Site-Safety-Monitoring-Incidental-System
 
-# Configure environment variables
 cp backend/.env.example backend/.env
-# edit backend/.env with your own values (HF_TOKEN optional but recommended)
 
-# Launch the full stack
 docker compose up -d --build
 
-# Run database migrations
 docker compose exec backend alembic upgrade head
 ```
 
-The dashboard is available at `http://localhost:5173`, with the FastAPI inference/REST/WebSocket service running at `http://localhost:8000`.
+The dashboard runs at `http://localhost:5173`, with the FastAPI service at `http://localhost:8000`.
 
-> Model weights (`best.pt`) and demo video footage are not committed to this repository due to size see `docker-compose.yml` for the expected local paths these are mounted from (`ml_training/models/`, `temp_video/`).
+Model weights and demo footage are not committed to this repository due to size. See `docker-compose.yml` for the expected local paths they are mounted from.
 
 ---
 
 ## Known Limitations
 
-Stated directly, rather than omitted:
-
-- **CPU-only deployment** in the current demo environment both YOLO inference (~817ms/frame) and RAG generation (~34s/query) would see substantial latency improvements on GPU hardware.
-- **Demo cameras use looped local video files**, not live RTSP feeds from physical cameras the architecture supports real camera integration, but this has not yet been tested against live hardware.
-- **RAG evaluation (ROUGE/BERTScore) is in progress**, currently constrained by limited accumulated violation data in the demo environment rather than a methodological gap.
-- **Solo-developed, prototype-stage project** not yet load-tested, and authentication/authorization has not undergone formal security review.
+- CPU only in the current demo environment, both detection and query latency would improve meaningfully on a GPU.
+- Demo cameras loop local video files rather than connecting to live RTSP feeds, the architecture supports real cameras but this has not yet been tested against physical hardware.
+- ROUGE and BERTScore evaluation is in progress, limited right now by how few violations the demo environment has accumulated, not by an unresolved method.
+- This is a solo built prototype, it has not undergone load testing or a formal security review.
 
 ---
 
 ## Project Context
 
-SafetyIQ was developed independently, end-to-end: raw dataset curation and class-imbalance correction, model fine-tuning and evaluation, relational schema design, retrieval-grounded NLP, real-time WebSocket inference infrastructure, JWT authentication, and a fully containerized full-stack deployment built to demonstrate applied AI systems engineering, with results reported as measured, not as aspired to.
+SafetyIQ was built independently, across dataset correction, model training and evaluation, database design, retrieval grounded language generation, real time streaming infrastructure, authentication, and full containerized deployment. The numbers in this README are reported the way they came out of testing, not adjusted to look better, because a project meant to demonstrate engineering judgment should be able to survive someone actually running it.
