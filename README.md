@@ -127,7 +127,6 @@ Built with React and Vite, consuming both REST and WebSocket APIs.
 | Authentication | JWT, bcrypt |
 | Frontend | React, Vite |
 | Infrastructure | Docker, Docker Compose |
-| Evaluation | mAP at 0.5 and 0.5 to 0.95, precision, recall, measured latency, BERTScore in progress |
 
 ---
 
